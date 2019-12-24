@@ -1,6 +1,8 @@
 #ifndef __NGX_GLOBAL_H__
 #define __NGX_GLOBAL_H__
 
+
+
 typedef struct 
 {
     char ItemName[50];
@@ -12,6 +14,6 @@ typedef struct
 extern char **g_os_argv;
 extern char *gp_envmen;
 extern int g_environlen;
-
+extern char **environ;
 
 #endif
