@@ -1,4 +1,7 @@
 #include "nginx.hpp"
+
+//本文件用的函数声明
+static void freeresource();
 int main(int argc, char *const *argv)
 {
 
@@ -23,19 +26,38 @@ int main(int argc, char *const *argv)
         printf("load config file failed!, exit!");
         exit(1);
     }
-    
+    p_config->printItem();
+    int ListenPort = p_config->getIntDefault("ListenPort");
+    printf("listen port is %d\n", ListenPort);
+    ngx_log_init();
+    ngx_log_error_core(5,0,"nginx start working=%s","correct");
     for (;;)
     {
         sleep(3);
-        printf("Sleep 3 seconds!\n");
-    }
-    if (gp_envmen != NULL)
-    {
-        delete[] gp_envmen;
-        gp_envmen = NULL;
+        ngx_log_error_core(5,8,"nginx sleeping...");
     }
 
+    freeresource();
     printf("process exit, bye!\n");
 
     return 0;
+}
+
+
+
+void freeresource()
+{
+    //(1)对于因为设置可执行程序标题导致的环境变量分配的内存，我们应该释放
+    if(gp_envmen)
+    {
+        delete []gp_envmen;
+        gp_envmen = NULL;
+    }
+
+    //(2)关闭日志文件
+    if(ngx_log.fd != STDERR_FILENO && ngx_log.fd != -1)  
+    {        
+        close(ngx_log.fd); //不用判断结果了
+        ngx_log.fd = -1; //标记下，防止被再次close吧        
+    }
 }

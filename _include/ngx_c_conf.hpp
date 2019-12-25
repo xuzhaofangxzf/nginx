@@ -39,7 +39,9 @@ class CConfig
         ~CConfig();
         bool loadConf(const char* pconfName);
         const char* getString(const char* p_itemName);
-        int getIntDefault(const char* p_itemName, const int def);
+        int getIntDefault(const char* p_itemName, const int def = 0);
+        //for test
+        void printItem();
     public:
         std::vector<LPCConfItem> m_configItemList; //存储配置信息列表
 };
