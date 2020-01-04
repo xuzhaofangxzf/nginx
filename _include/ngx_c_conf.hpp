@@ -32,7 +32,7 @@ class CConfig
                 delete m_pInstance;
                 m_pInstance = nullptr;
 
-            }extern char **environ;
+            }
             return;
         }
     public:

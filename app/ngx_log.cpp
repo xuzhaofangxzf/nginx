@@ -48,11 +48,8 @@ void ngx_log_stderr(int err, const char *fmt, ...)
     /*
         int vsnprintf(char *buffer, size_t count, const char *format, va_list argptr);
         buffer: Storage location for output.
-
         count: Maximum number of characters to write.
-
         format: Format specification.
-
         argptr: Pointer to list of arguments.
     The vsnprintf function returns the number of characters written, not counting the terminating null character.
     */
@@ -134,7 +131,7 @@ void ngx_log_error_core(int level, int err, const char *fmt, ...)
 
     /*计算时间的另一种方法*/
 
-    time_t time_seconds = time(0);
+    time_t time_seconds = time(NULL);
     localtime_r(&time_seconds, &tm);
 
     #if 0

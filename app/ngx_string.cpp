@@ -2,7 +2,7 @@
 #include <string.h>
 
 
-//截取字符串尾部空格以及煮食字符
+//截取字符串尾部空格以及注释字符
 void Rtrim(char *str)
 {
     size_t len = 0;
@@ -47,7 +47,7 @@ void Ltrim(char *str)
         p_srcstr++;
         p_dststr++;
     }
-    *p_srcstr = '\0';
+    *p_dststr = '\0';
     return;
  
 }
