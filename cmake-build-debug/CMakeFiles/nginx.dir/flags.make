@@ -6,5 +6,5 @@ CXX_FLAGS =  -std=c++11  -O0 -Wall -g2 -ggdb
 
 CXX_DEFINES = -DDEBUG
 
-CXX_INCLUDES = -I/Users/xufang/Documents/GitLab/Nginx/nginx/_include 
+CXX_INCLUDES = -I/home/xufang/GitLab/nginx/_include 
 

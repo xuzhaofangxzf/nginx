@@ -71,6 +71,6 @@
         "hashtable": "cpp",
         "bit": "cpp"
     },
-    "workbench.colorTheme": "Default Dark+",
+    "workbench.colorTheme": "Monokai",
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
 }

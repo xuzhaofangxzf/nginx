@@ -4,17 +4,17 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/Users/xufang/Documents/GitLab/Nginx/nginx/app/nginx.cpp" "/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/CMakeFiles/nginx.dir/app/nginx.cpp.o"
-  "/Users/xufang/Documents/GitLab/Nginx/nginx/app/ngx_c_conf.cpp" "/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/CMakeFiles/nginx.dir/app/ngx_c_conf.cpp.o"
-  "/Users/xufang/Documents/GitLab/Nginx/nginx/app/ngx_log.cpp" "/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/CMakeFiles/nginx.dir/app/ngx_log.cpp.o"
-  "/Users/xufang/Documents/GitLab/Nginx/nginx/app/ngx_setproctitle.cpp" "/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/CMakeFiles/nginx.dir/app/ngx_setproctitle.cpp.o"
-  "/Users/xufang/Documents/GitLab/Nginx/nginx/app/ngx_string.cpp" "/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/CMakeFiles/nginx.dir/app/ngx_string.cpp.o"
-  "/Users/xufang/Documents/GitLab/Nginx/nginx/net/ngx_c_socket.cpp" "/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.o"
-  "/Users/xufang/Documents/GitLab/Nginx/nginx/proc/ngx_daemon.cpp" "/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.o"
-  "/Users/xufang/Documents/GitLab/Nginx/nginx/proc/ngx_process_cycle.cpp" "/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/CMakeFiles/nginx.dir/proc/ngx_process_cycle.cpp.o"
-  "/Users/xufang/Documents/GitLab/Nginx/nginx/signal/ngx_signal.cpp" "/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/CMakeFiles/nginx.dir/signal/ngx_signal.cpp.o"
+  "/home/xufang/GitLab/nginx/app/nginx.cpp" "/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles/nginx.dir/app/nginx.cpp.o"
+  "/home/xufang/GitLab/nginx/app/ngx_c_conf.cpp" "/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles/nginx.dir/app/ngx_c_conf.cpp.o"
+  "/home/xufang/GitLab/nginx/app/ngx_log.cpp" "/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles/nginx.dir/app/ngx_log.cpp.o"
+  "/home/xufang/GitLab/nginx/app/ngx_setproctitle.cpp" "/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles/nginx.dir/app/ngx_setproctitle.cpp.o"
+  "/home/xufang/GitLab/nginx/app/ngx_string.cpp" "/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles/nginx.dir/app/ngx_string.cpp.o"
+  "/home/xufang/GitLab/nginx/net/ngx_c_socket.cpp" "/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.o"
+  "/home/xufang/GitLab/nginx/proc/ngx_daemon.cpp" "/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.o"
+  "/home/xufang/GitLab/nginx/proc/ngx_process_cycle.cpp" "/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles/nginx.dir/proc/ngx_process_cycle.cpp.o"
+  "/home/xufang/GitLab/nginx/signal/ngx_signal.cpp" "/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles/nginx.dir/signal/ngx_signal.cpp.o"
   )
-set(CMAKE_CXX_COMPILER_ID "Clang")
+set(CMAKE_CXX_COMPILER_ID "GNU")
 
 # Preprocessor definitions for this target.
 set(CMAKE_TARGET_DEFINITIONS_CXX

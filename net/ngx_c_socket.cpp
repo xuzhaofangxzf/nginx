@@ -10,6 +10,7 @@
 #include <string.h>
 #include <errno.h>  //errno
 #include <fcntl.h>
+#include <iostream>
 
 #include "ngx_c_socket.hpp"
 #include "ngx_c_conf.hpp"
@@ -19,7 +20,15 @@
 
 CSocket::CSocket()
 {
-    m_listenPortCount = 1;
+    //配置相关
+    m_worker_connections = 1; //epoll连接最大项数
+    m_listenPortCount = 1; //监听一个端口
+
+    //epoll相关
+    m_epollHandle = -1; //epoll返回的句柄
+    m_pConnections = NULL; //连接池【连接数组】先给空
+    m_pFreeConnections = NULL; //连接池中的空闲连接
+    return;
 }
 
 CSocket::~CSocket()
@@ -30,6 +39,11 @@ CSocket::~CSocket()
         delete (*pos);
     }
     m_ListenSocketList.clear();
+
+    if (m_pConnections != NULL)
+    {
+        delete [] m_pConnections;
+    }
     return;
     
 }
@@ -46,7 +60,6 @@ CSocket::~CSocket()
 bool CSocket::ngx_open_listening_sockets()
 {
     CConfig *pConfig = CConfig::getInstance();
-    m_listenPortCount = pConfig->getIntDefault("ListenPortCount", m_listenPortCount);
     
     int *aSock = new int[m_listenPortCount];
     struct sockaddr_in serv_addr;       //服务器的地址结构体
@@ -149,7 +162,7 @@ bool CSocket::ngx_open_listening_sockets()
     delete[] aSock;
     return true;
 }
-/*
+/**********************************************************
  * 函数名称: CSocket::setnonblocking
  * 函数描述: 设置阻塞/非阻塞
  * 函数参数:
@@ -157,7 +170,7 @@ bool CSocket::ngx_open_listening_sockets()
  * 返回值:
  *    失败： false
  *    成功:  true
-*/
+***********************************************************/
 bool CSocket::setnonblocking(int sockfd) 
 {
     int nb = 1; //0: clear, 1: set
@@ -209,6 +222,7 @@ bool CSocket::setnonblocking(int sockfd)
 
 bool CSocket::Initialize() 
 {
+    readConf();
     bool reco = ngx_open_listening_sockets();
     return reco;
 }
@@ -222,8 +236,228 @@ void CSocket::ngx_close_listening_sockets()
     }
     
 }
-
+/**********************************************************
+ * 函数名称: CSocket::readConf
+ * 函数描述: 读取配置文件相关信息，将值付给相关变量
+ * 函数参数:
+ *      空
+ * 返回值:
+ *    void
+***********************************************************/
 void CSocket::readConf()
 {
+    CConfig *pConfig = CConfig::getInstance();
+    m_worker_connections = pConfig->getIntDefault("worker_connections", m_worker_connections);
+    m_listenPortCount = pConfig->getIntDefault("ListenPortCount",m_listenPortCount);
 
+    return;
+}
+
+/**********************************************************
+ * 函数名称: CSocket::ngx_epoll_init
+ * 函数描述: epoll功能初始化，子进程中进程，本函数被ngx_worker_process_init()调用
+ * 函数参数:
+ *      空
+ * 返回值:
+ *    int：
+***********************************************************/
+int CSocket::ngx_epoll_init()
+{
+    /*
+    int epoll_create(int size)
+    该 函数生成一个epoll专用的文件描述符。
+    它其实是在内核申请一空间，用来存放你想关注的socket fd上是否发生以及发生了什么事件。
+    size就是你在这个epoll fd上能关注的最大socket fd数。
+    */
+    //(1)很多内核版本不处理epoll_create的参数，只要该参数>0即可
+    //创建一个epoll对象，创建了一个红黑树，还创建了一个双向链表
+    m_epollHandle = epoll_create(m_worker_connections); //直接以epoll连接的最大项数为参数，肯定是>0的
+    if (m_epollHandle == -1)
+    {
+        ngx_log_stderr(errno, "CSocket::ngx_epoll_init(), epoll_create() failed!");
+        exit(2); //直接退出，由系统帮我们回收资源
+    }
+
+    //(2)创建连接池，用于存储客户端的连接信息
+    m_connection_n = m_worker_connections; //记录当前连接池的总连接数
+    try
+    {
+        m_pConnections = new ngx_connection_t[m_connection_n];
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    
+    int i = m_connection_n; //连接池中连接数
+    lpngx_connection_t next = NULL;
+    lpngx_connection_t connectHead = m_pConnections; //连接池数组首地址
+    do
+    {
+        //从数组的末尾开始，将连接池串联起来，表示空的连接池
+        i--;
+        connectHead[i].data = next; //此处的data相当于链表中的next指针，数组的最后一个元素的data（即next）指向NULL
+        connectHead[i].fd = -1; //初始化连接，无socket和该连接池中的连接【对象】绑定
+        connectHead[i].instance = 1; //失效标志位置位1【失效】
+        connectHead[i].iCurrsequence = 0; //当前序号统一从0开始
+        //------------------
+
+        next = &connectHead[i]; //next指向当前元素的地址，其前一个元素的data（next）会指向现在的next，串联起来
+
+    } while (i);
+    
+    m_pFreeConnections = next; //此时next指向c[0]，将空闲连接表头指向首地址
+    m_free_connection_n = m_connection_n; //当前链表都是空闲的
+    //(3)遍历所有监听socket【监听端口】，我们为每个监听socket增加一个 连接池中的连接【说白了就是让一个socket和一个内存绑定，以方便记录该sokcet相关的数据、状态等等】
+    std::vector<lpngx_listening_t>::iterator pos;
+    for (pos = m_ListenSocketList.begin(); pos != m_ListenSocketList.end(); pos++)
+    {
+        connectHead = ngx_get_connection((*pos)->fd);
+        if (connectHead == NULL)
+        {
+            ngx_log_stderr(errno, "CSocket::ngx_epoll_init(), ngx_get_connection() failed!");
+            exit(2);
+        }
+        connectHead->listening = (*pos); //连接对象 和监听对象关联，方便通过连接对象找监听对象
+        (*pos)->connection = connectHead; //监听对象 和连接对象关联，方便通过监听对象找连接对象
+        //对监听端口的读事件设置处理方法，因为监听端口是用来等对方连接的发送三路握手的，所以监听端口关心的就是读事件
+        connectHead->rhandler = &CSocket::ngx_event_accept;
+        //在监听socket上增加监听事件，从而开始让监听端口履行其职责【如果不加这行，虽然端口能连上，但不会触发ngx_epoll_process_events()里边的epoll_wait()往下走】          
+        if (ngx_epoll_add_event((*pos)->fd, //socket句柄
+                                    1, 0,   //读写事件（只关系读事件）
+                                    0,
+                                    EPOLL_CTL_ADD, //事件类型，（增加，其他还有删除/修改）
+                                    connectHead    //连接池中的连接
+                                    ) == - 1)
+        {
+            exit(2);
+        }
+        
+    }
+
+    return 1;
+}
+/**********************************************************
+ * 函数名称: CSocket::ngx_get_connection
+ * 函数描述: 从连接池中获取一个空闲连接【当一个客户端连接TCP进入，
+ *          把这个TCP连接和连接池中的一个连接【对象】绑到一起，
+ *          后续 我可以通过这个连接，把这个对象拿到，因为对象里边可以记录各种信息】
+ * 函数参数:
+ *      int isock:socket描述符
+ * 返回值:
+ *    lpngx_connection_t: 返回一个空闲连接
+***********************************************************/
+
+
+lpngx_connection_t CSocket::ngx_get_connection(int isock)
+{
+    lpngx_connection_t connectHead = m_pFreeConnections; //空闲连接链表头
+    
+    if (connectHead == NULL)
+    {
+        //系统应该控制连接数量，防止空闲连接被耗尽
+        ngx_log_stderr(0, "CSocket::ngx_get_connection: free connection array is empty!");
+        return NULL;
+    }
+    
+    m_pFreeConnections = connectHead->data; //指向连接池中下一个未用的节点
+    m_free_connection_n -= 1; //空闲连接减一
+
+    //(1) 保存该空闲连接中的一些信息
+    uintptr_t instance = connectHead->instance; //初始情况下是失效的1；
+    uint64_t iCurrsequence = connectHead->iCurrsequence;
+    //其他内容后续添加...
+
+    //(2)清空connectHead中的不需要的其他内容
+    memset(connectHead, 0, sizeof(ngx_connection_t));
+    connectHead->fd = isock; //套接字要保存起来，这东西具有唯一性
+    //(3)把保存的数据重新赋值给connectHead
+    connectHead->instance = !instance; //取反，之前是失效，现在是有效的
+    connectHead->iCurrsequence =iCurrsequence;
+    connectHead->iCurrsequence++;
+    return connectHead;
+}
+
+/**********************************************************
+ * 函数名称: CSocket::ngx_get_connection
+ * 函数描述: 从连接池中获取一个空闲连接【当一个客户端连接TCP进入，
+ *          把这个TCP连接和连接池中的一个连接【对象】绑到一起，
+ *          后续 我可以通过这个连接，把这个对象拿到，因为对象里边可以记录各种信息】
+ * 函数参数:
+ *      int isock:socket描述符
+ * 返回值:
+ *    lpngx_connection_t: 返回一个空闲连接
+***********************************************************/
+int CSocket::ngx_epoll_add_event(int fd, 
+                                int readEvent, 
+                                int writeEvent, 
+                                uint32_t otherFlag, 
+                                uint32_t eventType, 
+                                lpngx_connection_t c)
+{
+    struct epoll_event ev;
+    memset(&ev, 0, sizeof(ev));
+
+    if (readEvent == 1)
+    {
+        //读事件，这里发现官方nginx没有使用EPOLLERR，因此我们也不用【有些范例中是使用EPOLLERR的】
+        ev.events = EPOLLIN | EPOLLRDHUP; //EPOLLIN读事件，也就是read ready
+        //【客户端三次握手连接进来，也属于一种可读事件】 EPOLLRDHUP 客户端关闭连接，断连
+        //似乎不用加EPOLLERR，只用EPOLLRDHUP即可，EPOLLERR/EPOLLRDHUP 实际上是通过触发读写事件进行读写操作recv write来检测连接异常
+        //ev.events |= (ev.events | EPOLLET);  //只支持非阻塞socket的高速模式【ET：边缘触发】，就拿accetp来说，如果加这个EPOLLET，则客户端连入时，epoll_wait()只会返回一次该事件，
+                                                //如果用的是EPOLLLT【水平触发：低速模式】，则客户端连入时，epoll_wait()会被触发多次，一直到用accept()来处理；
+        //https://blog.csdn.net/q576709166/article/details/8649911
+        //找下EPOLLERR的一些说法：
+        //a)对端正常关闭（程序里close()，shell下kill或ctr+c），触发EPOLLIN和EPOLLRDHUP，但是不触发EPOLLERR 和EPOLLHUP。
+        //b)EPOLLRDHUP    这个好像有些系统检测不到，可以使用EPOLLIN，read返回0，删除掉事件，关闭close(fd);如果有EPOLLRDHUP，检测它就可以直到是对方关闭；否则就用上面方法。
+        //c)client 端close()联接,server 会报某个sockfd可读，即epollin来临,然后recv一下 ， 如果返回0再掉用epoll_ctl 中的EPOLL_CTL_DEL , 同时close(sockfd)。
+                //有些系统会收到一个EPOLLRDHUP，当然检测这个是最好不过了。只可惜是有些系统，上面的方法最保险；如果能加上对EPOLLRDHUP的处理那就是万能的了。
+        //d)EPOLLERR      只有采取动作时，才能知道是否对方异常。即对方突然断掉，是不可能有此事件发生的。只有自己采取动作（当然自己此刻也不知道），read，write时，出EPOLLERR错，说明对方已经异常断开。
+        //e)EPOLLERR 是服务器这边出错（自己出错当然能检测到，对方出错你咋能知道啊）
+        //f)给已经关闭的socket写时，会发生EPOLLERR，也就是说，只有在采取行动（比如读一个已经关闭的socket，或者写一个已经关闭的socket）时候，才知道对方是否关闭了。
+        //这个时候，如果对方异常关闭了，则会出现EPOLLERR，出现Error把对方DEL掉，close就可以了。
+    }
+    else
+    {
+        /* code */
+    }
+
+    if (otherFlag != 0)
+    {
+        ev.events |= otherFlag;
+    }
+     //以下这段代码抄自nginx官方,因为指针的最后一位【二进制位】肯定不是1，所以 和 c->instance做 |运算；
+     //到时候通过一些编码，既可以取得c的真实地址，又可以把此时此刻的c->instance值取到
+    //比如c是个地址，可能的值是 0x00af0578，对应的二进制是‭101011110000010101111000‬，而 | 1后是0x00af0579
+    
+    ev.data.ptr = (void*)((uintptr_t)c | c->instance); //把对象弄进去，后续来事件时，用epoll_wait()后，这个对象能取出来用 
+                                                        //但同时把一个 标志位【不是0就是1】弄进去
+
+    /*
+    int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)
+    该函数用于控制某个epoll文件描述符上的事件，可以注册事件，修改事件，删除事件。
+    args:
+        epfd: 由epoll_create生成的epoll专用的文件描述符
+        op:   要进行操作的的事件，可能的取值为EPOLL_CTL_ADD添加, EPOLL_CTL_MOD修改, EPOLL_CTL_DEL删除
+        fd:   关联的文件描述符
+        event:指向epoll_event的指针
+            常用的事件类型：
+            EPOLLIN: 表示对应的文件描述符有可读事件
+            EPOLLOUT:表示对应的文件描述符有可写事件
+            EPOLLPRI:表示对应的文件描述符有紧急的数据可读事件
+            EPOLLERR:表示对应的文件描述符发生错误
+            EPOLLHUP:表示对应的文件描述符被挂断
+            EPOLLET:工作模式为ET(edge-triggered)边沿触发模式
+    return：
+        0，成功；-1，失败
+    */                                                
+    if (epoll_ctl(m_epollHandle, eventType, fd, &ev) == -1)
+    {
+        ngx_log_stderr(errno, 
+        "CSocket::ngx_epoll_add_event: epoll_ctrl failed! eventType = %d, fd = %d, readEvent = %d, writeEvent = %d, otherflag = %d", eventType, fd, readEvent, writeEvent, otherFlag);
+        return -1;
+    }
+    
+    return 1;
+                        
 }

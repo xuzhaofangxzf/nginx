@@ -4,119 +4,121 @@
 	<Project>
 		<Option title="CppTemplate"/>
 		<Option makefile_is_custom="1"/>
-		<Option compiler="clang"/>
+		<Option compiler="gcc"/>
 		<Option virtualFolders="CMake Files\;"/>
 		<Build>
 			<Target title="all">
-				<Option working_dir="/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug"/>
+				<Option working_dir="/home/xufang/GitLab/nginx/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
-					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="rebuild_cache">
-				<Option working_dir="/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug"/>
+				<Option working_dir="/home/xufang/GitLab/nginx/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
-					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-				</MakeCommands>
-			</Target>
-			<Target title="edit_cache">
-				<Option working_dir="/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug"/>
-				<Option type="4"/>
-				<MakeCommands>
-					<Build command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
-					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="nginx">
-				<Option output="/Users/xufang/Documents/GitLab/Nginx/nginx/bin/nginx" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/Users/xufang/Documents/GitLab/Nginx/nginx/bin"/>
+				<Option output="/home/xufang/GitLab/nginx/bin/nginx" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/xufang/GitLab/nginx/bin"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
-				<Option compiler="clang"/>
+				<Option compiler="gcc"/>
 				<Compiler>
 					<Add option="-DDEBUG"/>
-					<Add directory="/Users/xufang/Documents/GitLab/Nginx/nginx/_include"/>
-					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/home/xufang/GitLab/nginx/_include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
 					<Add directory="/usr/local/include"/>
-					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/10.0.0/include"/>
-					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
 					<Add directory="/usr/include"/>
-					<Add directory="/System/Library/Frameworks"/>
-					<Add directory="/Library/Frameworks"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 nginx"/>
-					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 nginx"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 			<Target title="nginx/fast">
-				<Option output="/Users/xufang/Documents/GitLab/Nginx/nginx/bin/nginx" prefix_auto="0" extension_auto="0"/>
-				<Option working_dir="/Users/xufang/Documents/GitLab/Nginx/nginx/bin"/>
+				<Option output="/home/xufang/GitLab/nginx/bin/nginx" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/xufang/GitLab/nginx/bin"/>
 				<Option object_output="./"/>
 				<Option type="1"/>
-				<Option compiler="clang"/>
+				<Option compiler="gcc"/>
 				<Compiler>
 					<Add option="-DDEBUG"/>
-					<Add directory="/Users/xufang/Documents/GitLab/Nginx/nginx/_include"/>
-					<Add directory="/Library/Developer/CommandLineTools/usr/include/c++/v1"/>
+					<Add directory="/home/xufang/GitLab/nginx/_include"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
 					<Add directory="/usr/local/include"/>
-					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/10.0.0/include"/>
-					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
 					<Add directory="/usr/include"/>
-					<Add directory="/System/Library/Frameworks"/>
-					<Add directory="/Library/Frameworks"/>
 				</Compiler>
 				<MakeCommands>
-					<Build command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 nginx/fast"/>
-					<CompileFile command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j12 -f &quot;/Users/xufang/Documents/GitLab/Nginx/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<Build command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 nginx/fast"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/xufang/GitLab/nginx/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j12 -f &quot;/home/xufang/GitLab/nginx/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/Users/xufang/Documents/GitLab/Nginx/nginx/_include/ngx_c_socket.hpp">
+		<Unit filename="/home/xufang/GitLab/nginx/_include/ngx_c_socket.hpp">
 			<Option target="nginx"/>
 		</Unit>
-		<Unit filename="/Users/xufang/Documents/GitLab/Nginx/nginx/app/nginx.cpp">
+		<Unit filename="/home/xufang/GitLab/nginx/app/nginx.cpp">
 			<Option target="nginx"/>
 		</Unit>
-		<Unit filename="/Users/xufang/Documents/GitLab/Nginx/nginx/app/ngx_c_conf.cpp">
+		<Unit filename="/home/xufang/GitLab/nginx/app/ngx_c_conf.cpp">
 			<Option target="nginx"/>
 		</Unit>
-		<Unit filename="/Users/xufang/Documents/GitLab/Nginx/nginx/app/ngx_log.cpp">
+		<Unit filename="/home/xufang/GitLab/nginx/app/ngx_log.cpp">
 			<Option target="nginx"/>
 		</Unit>
-		<Unit filename="/Users/xufang/Documents/GitLab/Nginx/nginx/app/ngx_setproctitle.cpp">
+		<Unit filename="/home/xufang/GitLab/nginx/app/ngx_setproctitle.cpp">
 			<Option target="nginx"/>
 		</Unit>
-		<Unit filename="/Users/xufang/Documents/GitLab/Nginx/nginx/app/ngx_string.cpp">
+		<Unit filename="/home/xufang/GitLab/nginx/app/ngx_string.cpp">
 			<Option target="nginx"/>
 		</Unit>
-		<Unit filename="/Users/xufang/Documents/GitLab/Nginx/nginx/net/ngx_c_socket.cpp">
+		<Unit filename="/home/xufang/GitLab/nginx/net/ngx_c_socket.cpp">
 			<Option target="nginx"/>
 		</Unit>
-		<Unit filename="/Users/xufang/Documents/GitLab/Nginx/nginx/proc/ngx_daemon.cpp">
+		<Unit filename="/home/xufang/GitLab/nginx/proc/ngx_daemon.cpp">
 			<Option target="nginx"/>
 		</Unit>
-		<Unit filename="/Users/xufang/Documents/GitLab/Nginx/nginx/proc/ngx_process_cycle.cpp">
+		<Unit filename="/home/xufang/GitLab/nginx/proc/ngx_process_cycle.cpp">
 			<Option target="nginx"/>
 		</Unit>
-		<Unit filename="/Users/xufang/Documents/GitLab/Nginx/nginx/signal/ngx_signal.cpp">
+		<Unit filename="/home/xufang/GitLab/nginx/signal/ngx_signal.cpp">
 			<Option target="nginx"/>
 		</Unit>
-		<Unit filename="/Users/xufang/Documents/GitLab/Nginx/nginx/CMakeLists.txt">
+		<Unit filename="/home/xufang/GitLab/nginx/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>
 	</Project>
