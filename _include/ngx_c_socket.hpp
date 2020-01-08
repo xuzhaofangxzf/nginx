@@ -15,9 +15,27 @@
 typedef struct ngx_listening_s ngx_listening_t, *lpngx_listening_t;
 typedef struct ngx_connection_s ngx_connection_t, *lpngx_connection_t;
 typedef class CSocket CSocket;
-typedef void (CSocket::*ngx_event_handler_pt)(lpngx_connection_t c);
+/*
+    (1)指向类的非静态成员函数的指针需要在指针前面加上类的类型，格式为：
+        typedef 返回值 (类名::*指针类型名)(参数列表);
+    (2)赋值： 需要用类的成员函数地址赋值，格式为：
+        指针类型名  指针名 = &类名::成员函数名;
+        注意：这里的这个&符号是比较重要的：不加&，编译器会认为是在这里调用成员函数，
+        所以需要给出参数列表，否则会报错；加了&，才认为是要获取函数指针。这是C++专门做了区别对待。
+    (3)调用： 针对调用的对象是对象还是指针，分别用.*和->*进行调用，格式为：
+        (a): (类对象.*指针名)(参数列表);
+        (b): (类指针->*指针名)(参数列表);
+        注意：这里的前面一对括号是很重要的，因为()的优先级高于成员操作符指针的优先级。
+    (4)指向类的静态函数的指针
+        类的静态成员函数和普通函数的函数指针的区别在于，他们是不依赖于具体对象的，所有实例化的对象都共享同一个静态成员，所以静态成员也没有this指针的概念。
+        所以，指向类的静态成员的指针就是普通的指针。 即typedef void (*ngx_event_handler_pt)(lpngx_connection_t c);
+    总结:
+       如果是类的静态成员函数，那么使用函数指针和普通函数指针没区别，使用方法一样,
+       如果是类的非静态成员函数，那么使用函数指针需要加一个类限制一下
+*/
+typedef void (CSocket::*ngx_event_handler_pt)(lpngx_connection_t c);//定义成员函数指针
 
-typedef struct ngx_listening_s
+struct ngx_listening_s
 {
     int port;   //监听的端口
     int fd;     //套接字句柄socket
@@ -43,7 +61,6 @@ struct ngx_connection_s
     uint8_t w_ready; //写准备好标记
     ngx_event_handler_pt rhandler; //读事件的相关处理方法
     ngx_event_handler_pt whandler; //写事件的相关处理方法
- 
     lpngx_connection_t data; //这是个指针【等价于传统链表里的next成员：后继指针】，指向下一个本类型对象，用于把空闲的连接池对象串起来构成一个单向链表，方便取用
 
 };

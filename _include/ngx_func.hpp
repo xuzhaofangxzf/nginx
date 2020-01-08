@@ -16,4 +16,6 @@ int ngx_init_signals();
 void ngx_master_process_cycle();
 int ngx_daemon();
 
+//处理socket事件相关
+void ngx_process_events_and_timers();
 #endif

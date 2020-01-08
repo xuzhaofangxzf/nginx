@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <errno.h>
+#include <sys/wait.h> //waitpid
 
 #include "ngx_macro.hpp"
 #include "ngx_func.hpp"

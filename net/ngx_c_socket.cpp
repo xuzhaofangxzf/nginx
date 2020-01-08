@@ -18,6 +18,7 @@
 #include "ngx_func.hpp"
 #include "ngx_macro.hpp"
 
+
 CSocket::CSocket()
 {
     //配置相关
@@ -185,6 +186,7 @@ bool CSocket::setnonblocking(int sockfd)
         return false;
     }
     return true;
+    #if 0
     /*
         另一种写法:
         int fcntl(int fd, int cmd); 
@@ -217,6 +219,7 @@ bool CSocket::setnonblocking(int sockfd)
        return false;
    }
    return true;
+   #endif
 
 }
 
@@ -337,56 +340,19 @@ int CSocket::ngx_epoll_init()
 
     return 1;
 }
-/**********************************************************
- * 函数名称: CSocket::ngx_get_connection
- * 函数描述: 从连接池中获取一个空闲连接【当一个客户端连接TCP进入，
- *          把这个TCP连接和连接池中的一个连接【对象】绑到一起，
- *          后续 我可以通过这个连接，把这个对象拿到，因为对象里边可以记录各种信息】
- * 函数参数:
- *      int isock:socket描述符
- * 返回值:
- *    lpngx_connection_t: 返回一个空闲连接
-***********************************************************/
-
-
-lpngx_connection_t CSocket::ngx_get_connection(int isock)
-{
-    lpngx_connection_t connectHead = m_pFreeConnections; //空闲连接链表头
-    
-    if (connectHead == NULL)
-    {
-        //系统应该控制连接数量，防止空闲连接被耗尽
-        ngx_log_stderr(0, "CSocket::ngx_get_connection: free connection array is empty!");
-        return NULL;
-    }
-    
-    m_pFreeConnections = connectHead->data; //指向连接池中下一个未用的节点
-    m_free_connection_n -= 1; //空闲连接减一
-
-    //(1) 保存该空闲连接中的一些信息
-    uintptr_t instance = connectHead->instance; //初始情况下是失效的1；
-    uint64_t iCurrsequence = connectHead->iCurrsequence;
-    //其他内容后续添加...
-
-    //(2)清空connectHead中的不需要的其他内容
-    memset(connectHead, 0, sizeof(ngx_connection_t));
-    connectHead->fd = isock; //套接字要保存起来，这东西具有唯一性
-    //(3)把保存的数据重新赋值给connectHead
-    connectHead->instance = !instance; //取反，之前是失效，现在是有效的
-    connectHead->iCurrsequence =iCurrsequence;
-    connectHead->iCurrsequence++;
-    return connectHead;
-}
 
 /**********************************************************
- * 函数名称: CSocket::ngx_get_connection
- * 函数描述: 从连接池中获取一个空闲连接【当一个客户端连接TCP进入，
- *          把这个TCP连接和连接池中的一个连接【对象】绑到一起，
- *          后续 我可以通过这个连接，把这个对象拿到，因为对象里边可以记录各种信息】
+ * 函数名称: CSocket::ngx_epoll_add_event
+ * 函数描述: epoll增加事件
  * 函数参数:
- *      int isock:socket描述符
+ *      int fd: 句柄
+ *      int readEvent:是否读事件，0不是，1是
+ *      int writeEvent:是否写事件，0不是，1是
+ *      uint32_t otherFlag: 其他需要额外补充的标记
+ *      uint32_t eventType: 事件类型，EPOLL_CTL_ADD,EPOLL_CTL_MOD, EPOLL_CTL_DEL 
+ *      lpngx_connection_t c: 对应的连接池中的连接的指针
  * 返回值:
- *    lpngx_connection_t: 返回一个空闲连接
+ *    int: 成功1，失败返回-1
 ***********************************************************/
 int CSocket::ngx_epoll_add_event(int fd, 
                                 int readEvent, 
@@ -460,4 +426,123 @@ int CSocket::ngx_epoll_add_event(int fd,
     
     return 1;
                         
+}
+
+/**********************************************************
+ * 函数名称: CSocket::ngx_epoll_process_events
+ * 函数描述: 获取发生的事件消息的处理
+ * 函数参数:
+ *      int timer:阻塞时长，单位是毫秒
+ * 返回值:
+ *    int: 1撑场返回，0：有问题的返回，不影响流程的继续进行
+***********************************************************/
+//本函数被ngx_process_events_and_timers()调用，而ngx_process_events_and_timers()是在子进程的死循环中被反复调用
+
+int CSocket::ngx_epoll_process_events(int timer)
+{
+    //等待事件，事件会返回到m_events里，最多返回NGX_MAX_EVENTS个事件【因为我只提供了这些内存】；
+    //阻塞timer这么长时间除非：a)阻塞时间到达 b)阻塞期间收到事件会立刻返回c)调用时有事件也会立刻返回d)如果来个信号，比如你用kill -1 pid测试
+    //如果timer为-1则一直阻塞，如果timer为0则立即返回，即便没有任何事件
+    //返回值：有错误发生返回-1，错误在errno中，比如你发个信号过来，就返回-1，错误信息是(4: Interrupted system call)
+    //       如果你等待的是一段时间，并且超时了，则返回0；
+    //       如果返回>0则表示成功捕获到这么多个事件【返回值里】
+    int events = epoll_wait(m_epollHandle, m_events, NGX_MAX_EVENTS, timer);
+
+    if (events == -1)
+    {
+        //有错误发生，发送某个信号给本进程就可以导致这个条件成立，
+        //#define EINTR  4，EINTR错误的产生：当阻塞于某个慢系统调用的一个进程捕获某个信号且相应信号处理函数返回时，该系统调用可能返回一个EINTR错误。
+        //例如：在socket服务器端，设置了信号捕获机制，有子进程，当在父进程阻塞于慢系统调用时由父进程捕获到了一个有效信号时，内核会致使accept返回一个EINTR错误(被中断的系统调用)。
+        if (errno == EINTR)
+        {
+            //信号所致，直接返回，一般认为不是什么问题，记录下日志即可，因为一般也不会人为给worker进程发送消息
+            ngx_log_error_core(NGX_LOG_INFO, errno, "CSocket::ngx_epoll_process_events: epoll_wait failed");
+            return 1;
+        }
+        else
+        {
+            ngx_log_error_core(NGX_LOG_INFO, errno, "CSocket::ngx_epoll_process_events: epoll_wait failed");
+            return 0;
+
+        }
+        
+    }
+    
+    if (events == 0) //超时，没有事件
+    {
+        if (timer != -1)
+        {
+            //阻塞事件到了，超时了，正常返回
+            return 1;
+        }
+        //持续阻塞，但是却没有事件，是有问题的存在
+        ngx_log_error_core(NGX_LOG_INFO, errno, "CSocket::ngx_epoll_process_events: epoll_wait persistently blocking, but no events back");
+        return 0;
+    }
+    //会惊群，一个telnet上来，4个worker进程都会被惊动，都执行下边这个
+    //ngx_log_stderr(errno,"惊群测试1:%d",events);
+    
+    //正常收到事件
+    lpngx_connection_t c;
+    uintptr_t instance;
+    uint32_t revents;
+    for (int i = 0; i < events; i++) //events为返回的实际事件的数量
+    {
+        c = (lpngx_connection_t)(m_events[i].data.ptr); //ngx_epll_add_event()给进去的，这里再取回来
+        instance = (uintptr_t) c & 1; //将地址的最后一位取出来
+        c = (lpngx_connection_t)((uintptr_t)c & (uintptr_t) ~1); //去掉最后一位，得到C的地址
+        
+        //一个套接字，当关联一个连接池中的连接(对象)时，套接字是要赋值给c->fd
+        //关闭连接时，在函数ngx_close_accepted_connection会把c->fd置为-1，
+        //假如epoll_wait返回三个事件，处理第一个事件的时候，由于业务需要，关闭了这个连接，此时c->fd被置为-1；
+        //第二个事件正常处理
+        //假如这第三个事件，也跟第一个事件对应的是同一个连接，那这个条件就会成立；那么这种事件，属于过期事件，不该处理
+        if (c->fd == -1)
+        {
+            ngx_log_error_core(NGX_LOG_DEBUG, 0, "CSocket::ngx_epoll_process_events:stale event:%p", c);
+            continue;
+        }
+
+        if (c->instance != instance)
+        {
+            /* 假如epoll_wait一次放回3个事件，第一个与第三个对应的是同一个连接的数据写入事件(即可读事件)，第二个是建立连接的新事件
+            (1) 假如第一个事件处理的是数据的写入等操作，即采用的是accept返回的socket，由于业务的需要，关闭了这个连接.
+                调用ngx_free_connection将该连接归还给连接池,同时释放了socket(假如是50)，c->fd被置为了-1。
+            (2) 在ngx_epoll_process_events方法的循环中开始处理第二个事件的时候，建立新的连接，由于第一个连接的socket刚刚被释放，很可能将刚释放的50复用给了该连接，
+                而此时从连接池中取出的连接也刚好是第一个连接释放后的空闲连接。在函数ngx_get_connection中,重新将50的socket描述符赋值给了c->fd.
+            (3) 因此，在循环中处理第三个事件时，第三个连接会仍然认为该连接c是自己的连接,仅仅判断c->fd == -1是不能过滤该过期事件了,这个事件就是过期了。
+                如何判断该过期的事件，依靠instance标志位能够解决这个问题，当调用ngx_get_connection从连接池中获取一个新连接时，我们把instance标志位置反，所以这个条件如果不成立，说明这个连接已经被挪作他用了；
+             */
+            ngx_log_error_core(NGX_LOG_DEBUG, 0, "CSocket::ngx_epoll_process_events:stale event:%p", c);
+            continue;
+        }
+
+        //到这里都是正常事件了
+        revents = m_events[i].events; //取出事件类型
+        if (revents & (EPOLLERR | EPOLLHUP)) //例如对方close掉套接字，这里会感应到【换句话说：如果发生了错误或者客户端断连】
+        {
+            revents |= EPOLLIN | EPOLLOUT; //EPOLLIN:表示对应的连接上的数据可以读取（TCP链接的远端主动关闭连接，也相当于可读事件，因为本服务器小处理发送来的FIN包）
+                                            //EPOLLOUT：表示对应的连接上可以写入数据发送【写准备好】
+        }
+
+        if (revents & EPOLLIN)
+        {
+            //客户端新连入,这个会成立
+            //注意括号的运用来正确设置优先级，防止编译出错；【如果是个新客户连入
+            //如果新连接进入，这里执行的应该是CSocekt::ngx_event_accept(c)】            
+            //如果是已经连入，发送数据到这里，则这里执行的应该是 CSocekt::ngx_wait_request_handler
+            (this->*(c->rhandler))(c);
+
+        }
+        if (revents & EPOLLOUT)
+        {
+            //代扩展
+            ngx_log_stderr(errno, "aaaaaaaa");
+        }
+        
+        
+    }
+
+    return 1;
+    
 }

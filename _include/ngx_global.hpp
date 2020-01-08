@@ -1,7 +1,12 @@
 #ifndef __NGX_GLOBAL_H__
 #define __NGX_GLOBAL_H__
 
+//#include <sig_atomic_t.h> //sig_atomic_t
 
+
+#include <signal.h> 
+
+#include "ngx_c_socket.hpp"
 //类型定义--------------
 
 typedef struct 
@@ -37,5 +42,5 @@ extern pid_t        ngx_parent;
 extern int          ngx_process;
 extern sig_atomic_t ngx_reap;
 
-
+extern CSocket       g_socket; 
 #endif

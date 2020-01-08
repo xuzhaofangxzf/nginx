@@ -38,10 +38,11 @@ endif()
 AUX_SOURCE_DIRECTORY(app DIR_SRCS) # 添加源代码文件夹, 自动扫描所有文件
 AUX_SOURCE_DIRECTORY(signal DIR_SRCS)
 AUX_SOURCE_DIRECTORY(proc DIR_SRCS)
+AUX_SOURCE_DIRECTORY(net DIR_SRCS)
 
 add_executable(nginx  # 输出名为chess的可执行文件
-   ${DIR_SRCS}
-        net/ngx_c_socket.cpp _include/ngx_c_socket.hpp)
+   ${DIR_SRCS})
+#        net/ngx_c_socket.cpp _include/ngx_c_socket.hpp)
 # 也可以这么写
 # add_executable(chess  # 输出名为chess的可执行文件
 #    ./src/main.cpp

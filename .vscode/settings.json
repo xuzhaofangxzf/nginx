@@ -69,8 +69,9 @@
         "vector": "cpp",
         "*.tcc": "cpp",
         "hashtable": "cpp",
-        "bit": "cpp"
+        "bit": "cpp",
+        "cerrno": "cpp"
     },
-    "workbench.colorTheme": "Monokai",
+    "workbench.colorTheme": "Default Dark+",
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
 }

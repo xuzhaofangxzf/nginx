@@ -176,8 +176,9 @@ static void ngx_worker_process_cycle(int inum, const char *pprocname)
     ngxSetProcTitle(pprocname);
     for (; ;)
     {
-        sleep(10);
-        ngx_log_error_core(0, 0, "This is child process num = %d, pid = %d ", inum, ngx_pid);
+        //sleep(10);
+        //ngx_log_error_core(0, 0, "This is child process num = %d, pid = %d ", inum, ngx_pid);
+        ngx_process_events_and_timers(); //处理网络事件和定时器事件
     }
     
 }
@@ -199,6 +200,8 @@ static void ngx_worker_process_init(int inum)
         //....将来再扩充代码
         //....
     }
+    //初始化epoll
+    g_socket.ngx_epoll_init();
     return;
     
 }
