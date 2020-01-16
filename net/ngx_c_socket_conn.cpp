@@ -53,6 +53,11 @@ lpngx_connection_t CSocket::ngx_get_connection(int isock)
     //(2)清空connectHead中的不需要的其他内容
     memset(connectHead, 0, sizeof(ngx_connection_t));
     connectHead->fd = isock; //套接字要保存起来，这东西具有唯一性
+    connectHead->curState = _PKG_HD_INIT; //收报状态处于初始化状态,准备接收数据
+    connectHead->pRecvBuf = connectHead->dataHeadInfo; //收包我要先收到这里来，因为我要先收包头，所以收数据的buff直接就是dataHeadInfo
+    connectHead->iRecvLen = sizeof(COMM_PKG_HEADER); //这里指定收数据的长度，这里先要求收包头这么长字节的数据
+    connectHead->ifNewRecvMem = false; //标记我们并没有new内存，所以不用释放
+    connectHead->pNewMemPointer = NULL;
     //(3)把保存的数据重新赋值给connectHead
     connectHead->instance = !instance; //取反，之前是失效，现在是有效的
     connectHead->iCurrsequence =iCurrsequence;
@@ -62,14 +67,12 @@ lpngx_connection_t CSocket::ngx_get_connection(int isock)
 
 
 /**********************************************************
- * 函数名称: CSocket::ngx_get_connection
- * 函数描述: 从连接池中获取一个空闲连接【当一个客户端连接TCP进入，
- *          把这个TCP连接和连接池中的一个连接【对象】绑到一起，
- *          后续 我可以通过这个连接，把这个对象拿到，因为对象里边可以记录各种信息】
+ * 函数名称: CSocket::ngx_free_connection
+ * 函数描述: 释放连接
  * 函数参数:
- *      int isock:socket描述符
+ *      lpngx_connection_t c 连接
  * 返回值:
- *    lpngx_connection_t: 返回一个空闲连接
+ *    void
 ***********************************************************/
 void CSocket::ngx_free_connection(lpngx_connection_t c)
 {

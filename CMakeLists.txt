@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8) # cmake最低版本要求
 
 PROJECT(CppTemplate)    # 工程名 CppTemplate
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11") # 添加c++11标准支持
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread") # 添加c++11标准支持
 
 SET(CMAKE_C_COMPILER "/usr/bin/gcc") # 默认c编译器
 SET(CMAKE_CXX_COMPILER "/usr/bin/g++") # 默认c++编译器
@@ -39,6 +39,8 @@ AUX_SOURCE_DIRECTORY(app DIR_SRCS) # 添加源代码文件夹, 自动扫描所�
 AUX_SOURCE_DIRECTORY(signal DIR_SRCS)
 AUX_SOURCE_DIRECTORY(proc DIR_SRCS)
 AUX_SOURCE_DIRECTORY(net DIR_SRCS)
+AUX_SOURCE_DIRECTORY(misc DIR_SRCS)
+
 
 add_executable(nginx  # 输出名为chess的可执行文件
    ${DIR_SRCS})

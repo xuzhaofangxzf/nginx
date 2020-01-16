@@ -7,6 +7,7 @@
 #include <signal.h> 
 
 #include "ngx_c_socket.hpp"
+#include "ngx_c_threadpool.hpp"
 //类型定义--------------
 
 typedef struct 
@@ -42,5 +43,6 @@ extern pid_t        ngx_parent;
 extern int          ngx_process;
 extern sig_atomic_t ngx_reap;
 
-extern CSocket       g_socket; 
+extern CSocket       g_socket;
+extern ngx_c_threadpool g_threadpool;
 #endif

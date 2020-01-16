@@ -88,13 +88,13 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="/home/xufang/GitLab/nginx/_include/ngx_c_socket.hpp">
-			<Option target="nginx"/>
-		</Unit>
 		<Unit filename="/home/xufang/GitLab/nginx/app/nginx.cpp">
 			<Option target="nginx"/>
 		</Unit>
 		<Unit filename="/home/xufang/GitLab/nginx/app/ngx_c_conf.cpp">
+			<Option target="nginx"/>
+		</Unit>
+		<Unit filename="/home/xufang/GitLab/nginx/app/ngx_c_memory.cpp">
 			<Option target="nginx"/>
 		</Unit>
 		<Unit filename="/home/xufang/GitLab/nginx/app/ngx_log.cpp">
@@ -106,10 +106,28 @@
 		<Unit filename="/home/xufang/GitLab/nginx/app/ngx_string.cpp">
 			<Option target="nginx"/>
 		</Unit>
+		<Unit filename="/home/xufang/GitLab/nginx/misc/ngx_c_threadpool.cpp">
+			<Option target="nginx"/>
+		</Unit>
 		<Unit filename="/home/xufang/GitLab/nginx/net/ngx_c_socket.cpp">
 			<Option target="nginx"/>
 		</Unit>
+		<Unit filename="/home/xufang/GitLab/nginx/net/ngx_c_socket_accept.cpp">
+			<Option target="nginx"/>
+		</Unit>
+		<Unit filename="/home/xufang/GitLab/nginx/net/ngx_c_socket_conn.cpp">
+			<Option target="nginx"/>
+		</Unit>
+		<Unit filename="/home/xufang/GitLab/nginx/net/ngx_c_socket_inet.cpp">
+			<Option target="nginx"/>
+		</Unit>
+		<Unit filename="/home/xufang/GitLab/nginx/net/ngx_c_socket_request.cpp">
+			<Option target="nginx"/>
+		</Unit>
 		<Unit filename="/home/xufang/GitLab/nginx/proc/ngx_daemon.cpp">
+			<Option target="nginx"/>
+		</Unit>
+		<Unit filename="/home/xufang/GitLab/nginx/proc/ngx_event.cpp">
 			<Option target="nginx"/>
 		</Unit>
 		<Unit filename="/home/xufang/GitLab/nginx/proc/ngx_process_cycle.cpp">

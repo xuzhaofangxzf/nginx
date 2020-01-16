@@ -177,6 +177,33 @@ app/ngx_c_conf.cpp.s:
 	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/app/ngx_c_conf.cpp.s
 .PHONY : app/ngx_c_conf.cpp.s
 
+app/ngx_c_memory.o: app/ngx_c_memory.cpp.o
+
+.PHONY : app/ngx_c_memory.o
+
+# target to build an object file
+app/ngx_c_memory.cpp.o:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.o
+.PHONY : app/ngx_c_memory.cpp.o
+
+app/ngx_c_memory.i: app/ngx_c_memory.cpp.i
+
+.PHONY : app/ngx_c_memory.i
+
+# target to preprocess a source file
+app/ngx_c_memory.cpp.i:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.i
+.PHONY : app/ngx_c_memory.cpp.i
+
+app/ngx_c_memory.s: app/ngx_c_memory.cpp.s
+
+.PHONY : app/ngx_c_memory.s
+
+# target to generate assembly for a file
+app/ngx_c_memory.cpp.s:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.s
+.PHONY : app/ngx_c_memory.cpp.s
+
 app/ngx_log.o: app/ngx_log.cpp.o
 
 .PHONY : app/ngx_log.o
@@ -258,6 +285,33 @@ app/ngx_string.cpp.s:
 	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/app/ngx_string.cpp.s
 .PHONY : app/ngx_string.cpp.s
 
+misc/ngx_c_threadpool.o: misc/ngx_c_threadpool.cpp.o
+
+.PHONY : misc/ngx_c_threadpool.o
+
+# target to build an object file
+misc/ngx_c_threadpool.cpp.o:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.o
+.PHONY : misc/ngx_c_threadpool.cpp.o
+
+misc/ngx_c_threadpool.i: misc/ngx_c_threadpool.cpp.i
+
+.PHONY : misc/ngx_c_threadpool.i
+
+# target to preprocess a source file
+misc/ngx_c_threadpool.cpp.i:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.i
+.PHONY : misc/ngx_c_threadpool.cpp.i
+
+misc/ngx_c_threadpool.s: misc/ngx_c_threadpool.cpp.s
+
+.PHONY : misc/ngx_c_threadpool.s
+
+# target to generate assembly for a file
+misc/ngx_c_threadpool.cpp.s:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.s
+.PHONY : misc/ngx_c_threadpool.cpp.s
+
 net/ngx_c_socket.o: net/ngx_c_socket.cpp.o
 
 .PHONY : net/ngx_c_socket.o
@@ -285,6 +339,114 @@ net/ngx_c_socket.cpp.s:
 	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.s
 .PHONY : net/ngx_c_socket.cpp.s
 
+net/ngx_c_socket_accept.o: net/ngx_c_socket_accept.cpp.o
+
+.PHONY : net/ngx_c_socket_accept.o
+
+# target to build an object file
+net/ngx_c_socket_accept.cpp.o:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.o
+.PHONY : net/ngx_c_socket_accept.cpp.o
+
+net/ngx_c_socket_accept.i: net/ngx_c_socket_accept.cpp.i
+
+.PHONY : net/ngx_c_socket_accept.i
+
+# target to preprocess a source file
+net/ngx_c_socket_accept.cpp.i:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.i
+.PHONY : net/ngx_c_socket_accept.cpp.i
+
+net/ngx_c_socket_accept.s: net/ngx_c_socket_accept.cpp.s
+
+.PHONY : net/ngx_c_socket_accept.s
+
+# target to generate assembly for a file
+net/ngx_c_socket_accept.cpp.s:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.s
+.PHONY : net/ngx_c_socket_accept.cpp.s
+
+net/ngx_c_socket_conn.o: net/ngx_c_socket_conn.cpp.o
+
+.PHONY : net/ngx_c_socket_conn.o
+
+# target to build an object file
+net/ngx_c_socket_conn.cpp.o:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.o
+.PHONY : net/ngx_c_socket_conn.cpp.o
+
+net/ngx_c_socket_conn.i: net/ngx_c_socket_conn.cpp.i
+
+.PHONY : net/ngx_c_socket_conn.i
+
+# target to preprocess a source file
+net/ngx_c_socket_conn.cpp.i:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.i
+.PHONY : net/ngx_c_socket_conn.cpp.i
+
+net/ngx_c_socket_conn.s: net/ngx_c_socket_conn.cpp.s
+
+.PHONY : net/ngx_c_socket_conn.s
+
+# target to generate assembly for a file
+net/ngx_c_socket_conn.cpp.s:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.s
+.PHONY : net/ngx_c_socket_conn.cpp.s
+
+net/ngx_c_socket_inet.o: net/ngx_c_socket_inet.cpp.o
+
+.PHONY : net/ngx_c_socket_inet.o
+
+# target to build an object file
+net/ngx_c_socket_inet.cpp.o:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.o
+.PHONY : net/ngx_c_socket_inet.cpp.o
+
+net/ngx_c_socket_inet.i: net/ngx_c_socket_inet.cpp.i
+
+.PHONY : net/ngx_c_socket_inet.i
+
+# target to preprocess a source file
+net/ngx_c_socket_inet.cpp.i:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.i
+.PHONY : net/ngx_c_socket_inet.cpp.i
+
+net/ngx_c_socket_inet.s: net/ngx_c_socket_inet.cpp.s
+
+.PHONY : net/ngx_c_socket_inet.s
+
+# target to generate assembly for a file
+net/ngx_c_socket_inet.cpp.s:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.s
+.PHONY : net/ngx_c_socket_inet.cpp.s
+
+net/ngx_c_socket_request.o: net/ngx_c_socket_request.cpp.o
+
+.PHONY : net/ngx_c_socket_request.o
+
+# target to build an object file
+net/ngx_c_socket_request.cpp.o:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.o
+.PHONY : net/ngx_c_socket_request.cpp.o
+
+net/ngx_c_socket_request.i: net/ngx_c_socket_request.cpp.i
+
+.PHONY : net/ngx_c_socket_request.i
+
+# target to preprocess a source file
+net/ngx_c_socket_request.cpp.i:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.i
+.PHONY : net/ngx_c_socket_request.cpp.i
+
+net/ngx_c_socket_request.s: net/ngx_c_socket_request.cpp.s
+
+.PHONY : net/ngx_c_socket_request.s
+
+# target to generate assembly for a file
+net/ngx_c_socket_request.cpp.s:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.s
+.PHONY : net/ngx_c_socket_request.cpp.s
+
 proc/ngx_daemon.o: proc/ngx_daemon.cpp.o
 
 .PHONY : proc/ngx_daemon.o
@@ -311,6 +473,33 @@ proc/ngx_daemon.s: proc/ngx_daemon.cpp.s
 proc/ngx_daemon.cpp.s:
 	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.s
 .PHONY : proc/ngx_daemon.cpp.s
+
+proc/ngx_event.o: proc/ngx_event.cpp.o
+
+.PHONY : proc/ngx_event.o
+
+# target to build an object file
+proc/ngx_event.cpp.o:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/proc/ngx_event.cpp.o
+.PHONY : proc/ngx_event.cpp.o
+
+proc/ngx_event.i: proc/ngx_event.cpp.i
+
+.PHONY : proc/ngx_event.i
+
+# target to preprocess a source file
+proc/ngx_event.cpp.i:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/proc/ngx_event.cpp.i
+.PHONY : proc/ngx_event.cpp.i
+
+proc/ngx_event.s: proc/ngx_event.cpp.s
+
+.PHONY : proc/ngx_event.s
+
+# target to generate assembly for a file
+proc/ngx_event.cpp.s:
+	$(MAKE) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/proc/ngx_event.cpp.s
+.PHONY : proc/ngx_event.cpp.s
 
 proc/ngx_process_cycle.o: proc/ngx_process_cycle.cpp.o
 
@@ -381,6 +570,9 @@ help:
 	@echo "... app/ngx_c_conf.o"
 	@echo "... app/ngx_c_conf.i"
 	@echo "... app/ngx_c_conf.s"
+	@echo "... app/ngx_c_memory.o"
+	@echo "... app/ngx_c_memory.i"
+	@echo "... app/ngx_c_memory.s"
 	@echo "... app/ngx_log.o"
 	@echo "... app/ngx_log.i"
 	@echo "... app/ngx_log.s"
@@ -390,12 +582,30 @@ help:
 	@echo "... app/ngx_string.o"
 	@echo "... app/ngx_string.i"
 	@echo "... app/ngx_string.s"
+	@echo "... misc/ngx_c_threadpool.o"
+	@echo "... misc/ngx_c_threadpool.i"
+	@echo "... misc/ngx_c_threadpool.s"
 	@echo "... net/ngx_c_socket.o"
 	@echo "... net/ngx_c_socket.i"
 	@echo "... net/ngx_c_socket.s"
+	@echo "... net/ngx_c_socket_accept.o"
+	@echo "... net/ngx_c_socket_accept.i"
+	@echo "... net/ngx_c_socket_accept.s"
+	@echo "... net/ngx_c_socket_conn.o"
+	@echo "... net/ngx_c_socket_conn.i"
+	@echo "... net/ngx_c_socket_conn.s"
+	@echo "... net/ngx_c_socket_inet.o"
+	@echo "... net/ngx_c_socket_inet.i"
+	@echo "... net/ngx_c_socket_inet.s"
+	@echo "... net/ngx_c_socket_request.o"
+	@echo "... net/ngx_c_socket_request.i"
+	@echo "... net/ngx_c_socket_request.s"
 	@echo "... proc/ngx_daemon.o"
 	@echo "... proc/ngx_daemon.i"
 	@echo "... proc/ngx_daemon.s"
+	@echo "... proc/ngx_event.o"
+	@echo "... proc/ngx_event.i"
+	@echo "... proc/ngx_event.s"
 	@echo "... proc/ngx_process_cycle.o"
 	@echo "... proc/ngx_process_cycle.i"
 	@echo "... proc/ngx_process_cycle.s"

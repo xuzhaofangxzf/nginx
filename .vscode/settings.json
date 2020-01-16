@@ -70,7 +70,9 @@
         "*.tcc": "cpp",
         "hashtable": "cpp",
         "bit": "cpp",
-        "cerrno": "cpp"
+        "cerrno": "cpp",
+        "iostream": "cpp",
+        "list": "cpp"
     },
     "workbench.colorTheme": "Default Dark+",
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"

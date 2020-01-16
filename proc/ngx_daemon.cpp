@@ -32,7 +32,7 @@ int ngx_daemon()
     case -1:
         /* failed */
         ngx_log_error_core(NGX_LOG_EMERG, errno,"ngx_daemon:fork() failed!");
-        break;
+        return -1;
     case 0:
     //子进程，直接break，执行下面的操作
         break;
@@ -77,5 +77,6 @@ int ngx_daemon()
             return -1;
         }
     }
+    ngx_log_stderr(0, "create deamon success!");
     return 0;
 }

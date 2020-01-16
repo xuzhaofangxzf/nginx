@@ -29,6 +29,10 @@ CSocket::CSocket()
     m_epollHandle = -1; //epoll返回的句柄
     m_pConnections = NULL; //连接池【连接数组】先给空
     m_pFreeConnections = NULL; //连接池中的空闲连接
+    m_iLenPkg_Header = sizeof(COMM_PKG_HEADER);
+    m_iLenMsgHeader = sizeof(STRUC_MSG_HEADER);
+    
+
     return;
 }
 

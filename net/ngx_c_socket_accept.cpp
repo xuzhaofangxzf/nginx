@@ -106,7 +106,7 @@ void CSocket::ngx_event_accept(lpngx_connection_t oldc)
         //所以参考资料：https://blog.csdn.net/russell_tao/article/details/7204260
         //其实，在linux2.6内核上，accept系统调用已经不存在惊群了（至少我在2.6.18内核版本上已经不存在）。大家可以写个简单的程序试下，在父进程中bind,listen，然后fork出子进程，
         //所有的子进程都accept这个监听句柄。这样，当新连接过来时，大家会发现，仅有一个子进程返回新建的连接，其他子进程继续休眠在accept调用上，没有被唤醒。
-        //ngx_log_stderr(0,"测试惊群问题，看惊动几个worker进程%d\n",s); 【我的结论是：accept4可以认为基本解决惊群问题，但似乎并没有完全解决，有时候还会惊动其他的worker进程】
+        ngx_log_stderr(0,"测试惊群问题，看惊动几个worker进程%d\n",s); //【我的结论是：accept4可以认为基本解决惊群问题，但似乎并没有完全解决，有时候还会惊动其他的worker进程】
         
         if (s == -1)
         {
@@ -171,10 +171,11 @@ void CSocket::ngx_event_accept(lpngx_connection_t oldc)
     //成功地拿到了连接池中的一个连接
     memcpy(&newc->s_sockaddr, &servSockAddr, sockLen); //拷贝客户端地址到连接对象【要转成字符串ip地址参考函数ngx_sock_ntop()】
     //{
-    //    //测试将收到的地址弄成字符串，格式形如"192.168.1.126:40904"或者"192.168.1.126"
-    //    u_char ipaddr[100]; memset(ipaddr,0,sizeof(ipaddr));
-    //    ngx_sock_ntop(&newc->s_sockaddr,1,ipaddr,sizeof(ipaddr)-10); //宽度给小点
-    //    ngx_log_stderr(0,"ip信息为%s\n",ipaddr);
+       //测试将收到的地址弄成字符串，格式形如"192.168.1.126:40904"或者"192.168.1.126"
+       char ipaddr[50]; 
+       memset(ipaddr,0,sizeof(ipaddr));
+       ngx_sock_ntop(&newc->s_sockaddr,1,ipaddr,sizeof(ipaddr)); //宽度给小点
+       ngx_log_stderr(0,"ip信息为%s\n",ipaddr);
     //}
 
     if (!use_accept4)
@@ -183,7 +184,7 @@ void CSocket::ngx_event_accept(lpngx_connection_t oldc)
         {
             ngx_log_error_core(NGX_LOG_WARN, errno, "accept setnonblocking failed socket (%d)", s);
             //释放连接
-            ngx_close_accepted_connection(newc);
+            ngx_close_connection(newc);
             return;
         }
     }
@@ -194,11 +195,11 @@ void CSocket::ngx_event_accept(lpngx_connection_t oldc)
     //客户端应该主动发送第一次的数据，这里将读事件加入epoll监控
     if (ngx_epoll_add_event(s,              //socket句柄
                             1, 0,           //读写事件
-                            EPOLLET,        //其他补充标记,EPOLLET(高速模式,边沿出发)
+                            0,        //其他补充标记,EPOLLET(高速模式,边沿出发)
                             EPOLL_CTL_ADD,  //事件类型(增加,其他还有删除/修改)
                             newc) == -1)    //连接池中的连接
     {
-        ngx_close_accepted_connection(newc);
+        ngx_close_connection(newc);
         return;
     }
     break;
@@ -219,15 +220,14 @@ void CSocket::ngx_event_accept(lpngx_connection_t oldc)
  * 返回值:
  *    void
 ***********************************************************/
-void CSocket::ngx_close_accepted_connection(lpngx_connection_t c)
+void CSocket::ngx_close_connection(lpngx_connection_t c)
 {
-    int fd = c->fd;
-    ngx_free_connection(c);
-    c->fd = -1;
-    if (close(fd) == -1)
+    if (close(c->fd) == -1)
     {
-        ngx_log_error_core(NGX_LOG_ALERT, errno, "CSockt::ngx_close_accepted_connection: close fd = %d failed", fd);
+        ngx_log_error_core(NGX_LOG_ALERT, errno, "CSockt::ngx_close_accepted_connection: close fd = %d failed", c->fd);
     }
+    c->fd = -1;
+    ngx_free_connection(c);
     return;
     
 }

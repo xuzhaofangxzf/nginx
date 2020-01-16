@@ -173,6 +173,7 @@ static void ngx_worker_process_cycle(int inum, const char *pprocname)
     ngx_process = NGX_PROCESS_WORKER;  //设置进程的类型，是worker进程
     //重新为子进程设置进程名，不要与父进程重复------
     ngx_worker_process_init(inum);
+    ngx_log_stderr(0, "running here 1");
     ngxSetProcTitle(pprocname);
     for (; ;)
     {
@@ -200,6 +201,14 @@ static void ngx_worker_process_init(int inum)
         //....将来再扩充代码
         //....
     }
+    CConfig *p_config = CConfig::getInstance();
+    int tempThreadNums = p_config->getIntDefault("ProcMsgRecvWorkThreadCount", 5);
+    if (g_threadpool.createThread(tempThreadNums) == false)
+    {
+        ngx_log_stderr(0,"create threads pool failed!");
+        exit(-2);
+    }
+    sleep(1);
     //初始化epoll
     g_socket.ngx_epoll_init();
     return;

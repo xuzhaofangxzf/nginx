@@ -83,9 +83,22 @@ CMakeFiles/nginx.dir/app/ngx_c_conf.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/nginx.dir/app/ngx_c_conf.cpp.s"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/xufang/GitLab/nginx/app/ngx_c_conf.cpp -o CMakeFiles/nginx.dir/app/ngx_c_conf.cpp.s
 
+CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.o: CMakeFiles/nginx.dir/flags.make
+CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.o: ../app/ngx_c_memory.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.o"
+	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.o -c /home/xufang/GitLab/nginx/app/ngx_c_memory.cpp
+
+CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.i"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/xufang/GitLab/nginx/app/ngx_c_memory.cpp > CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.i
+
+CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.s"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/xufang/GitLab/nginx/app/ngx_c_memory.cpp -o CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.s
+
 CMakeFiles/nginx.dir/app/ngx_log.cpp.o: CMakeFiles/nginx.dir/flags.make
 CMakeFiles/nginx.dir/app/ngx_log.cpp.o: ../app/ngx_log.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/nginx.dir/app/ngx_log.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/nginx.dir/app/ngx_log.cpp.o"
 	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/app/ngx_log.cpp.o -c /home/xufang/GitLab/nginx/app/ngx_log.cpp
 
 CMakeFiles/nginx.dir/app/ngx_log.cpp.i: cmake_force
@@ -98,7 +111,7 @@ CMakeFiles/nginx.dir/app/ngx_log.cpp.s: cmake_force
 
 CMakeFiles/nginx.dir/app/ngx_setproctitle.cpp.o: CMakeFiles/nginx.dir/flags.make
 CMakeFiles/nginx.dir/app/ngx_setproctitle.cpp.o: ../app/ngx_setproctitle.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/nginx.dir/app/ngx_setproctitle.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/nginx.dir/app/ngx_setproctitle.cpp.o"
 	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/app/ngx_setproctitle.cpp.o -c /home/xufang/GitLab/nginx/app/ngx_setproctitle.cpp
 
 CMakeFiles/nginx.dir/app/ngx_setproctitle.cpp.i: cmake_force
@@ -111,7 +124,7 @@ CMakeFiles/nginx.dir/app/ngx_setproctitle.cpp.s: cmake_force
 
 CMakeFiles/nginx.dir/app/ngx_string.cpp.o: CMakeFiles/nginx.dir/flags.make
 CMakeFiles/nginx.dir/app/ngx_string.cpp.o: ../app/ngx_string.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/nginx.dir/app/ngx_string.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/nginx.dir/app/ngx_string.cpp.o"
 	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/app/ngx_string.cpp.o -c /home/xufang/GitLab/nginx/app/ngx_string.cpp
 
 CMakeFiles/nginx.dir/app/ngx_string.cpp.i: cmake_force
@@ -124,7 +137,7 @@ CMakeFiles/nginx.dir/app/ngx_string.cpp.s: cmake_force
 
 CMakeFiles/nginx.dir/signal/ngx_signal.cpp.o: CMakeFiles/nginx.dir/flags.make
 CMakeFiles/nginx.dir/signal/ngx_signal.cpp.o: ../signal/ngx_signal.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/nginx.dir/signal/ngx_signal.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/nginx.dir/signal/ngx_signal.cpp.o"
 	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/signal/ngx_signal.cpp.o -c /home/xufang/GitLab/nginx/signal/ngx_signal.cpp
 
 CMakeFiles/nginx.dir/signal/ngx_signal.cpp.i: cmake_force
@@ -137,7 +150,7 @@ CMakeFiles/nginx.dir/signal/ngx_signal.cpp.s: cmake_force
 
 CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.o: CMakeFiles/nginx.dir/flags.make
 CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.o: ../proc/ngx_daemon.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.o"
 	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.o -c /home/xufang/GitLab/nginx/proc/ngx_daemon.cpp
 
 CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.i: cmake_force
@@ -148,9 +161,22 @@ CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.s"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/xufang/GitLab/nginx/proc/ngx_daemon.cpp -o CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.s
 
+CMakeFiles/nginx.dir/proc/ngx_event.cpp.o: CMakeFiles/nginx.dir/flags.make
+CMakeFiles/nginx.dir/proc/ngx_event.cpp.o: ../proc/ngx_event.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/nginx.dir/proc/ngx_event.cpp.o"
+	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/proc/ngx_event.cpp.o -c /home/xufang/GitLab/nginx/proc/ngx_event.cpp
+
+CMakeFiles/nginx.dir/proc/ngx_event.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/nginx.dir/proc/ngx_event.cpp.i"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/xufang/GitLab/nginx/proc/ngx_event.cpp > CMakeFiles/nginx.dir/proc/ngx_event.cpp.i
+
+CMakeFiles/nginx.dir/proc/ngx_event.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/nginx.dir/proc/ngx_event.cpp.s"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/xufang/GitLab/nginx/proc/ngx_event.cpp -o CMakeFiles/nginx.dir/proc/ngx_event.cpp.s
+
 CMakeFiles/nginx.dir/proc/ngx_process_cycle.cpp.o: CMakeFiles/nginx.dir/flags.make
 CMakeFiles/nginx.dir/proc/ngx_process_cycle.cpp.o: ../proc/ngx_process_cycle.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/nginx.dir/proc/ngx_process_cycle.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/nginx.dir/proc/ngx_process_cycle.cpp.o"
 	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/proc/ngx_process_cycle.cpp.o -c /home/xufang/GitLab/nginx/proc/ngx_process_cycle.cpp
 
 CMakeFiles/nginx.dir/proc/ngx_process_cycle.cpp.i: cmake_force
@@ -163,7 +189,7 @@ CMakeFiles/nginx.dir/proc/ngx_process_cycle.cpp.s: cmake_force
 
 CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.o: CMakeFiles/nginx.dir/flags.make
 CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.o: ../net/ngx_c_socket.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.o"
 	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.o -c /home/xufang/GitLab/nginx/net/ngx_c_socket.cpp
 
 CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.i: cmake_force
@@ -174,33 +200,112 @@ CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.s"
 	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/xufang/GitLab/nginx/net/ngx_c_socket.cpp -o CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.s
 
+CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.o: CMakeFiles/nginx.dir/flags.make
+CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.o: ../net/ngx_c_socket_accept.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.o"
+	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.o -c /home/xufang/GitLab/nginx/net/ngx_c_socket_accept.cpp
+
+CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.i"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/xufang/GitLab/nginx/net/ngx_c_socket_accept.cpp > CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.i
+
+CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.s"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/xufang/GitLab/nginx/net/ngx_c_socket_accept.cpp -o CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.s
+
+CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.o: CMakeFiles/nginx.dir/flags.make
+CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.o: ../net/ngx_c_socket_conn.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.o"
+	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.o -c /home/xufang/GitLab/nginx/net/ngx_c_socket_conn.cpp
+
+CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.i"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/xufang/GitLab/nginx/net/ngx_c_socket_conn.cpp > CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.i
+
+CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.s"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/xufang/GitLab/nginx/net/ngx_c_socket_conn.cpp -o CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.s
+
+CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.o: CMakeFiles/nginx.dir/flags.make
+CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.o: ../net/ngx_c_socket_inet.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.o"
+	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.o -c /home/xufang/GitLab/nginx/net/ngx_c_socket_inet.cpp
+
+CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.i"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/xufang/GitLab/nginx/net/ngx_c_socket_inet.cpp > CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.i
+
+CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.s"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/xufang/GitLab/nginx/net/ngx_c_socket_inet.cpp -o CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.s
+
+CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.o: CMakeFiles/nginx.dir/flags.make
+CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.o: ../net/ngx_c_socket_request.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.o"
+	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.o -c /home/xufang/GitLab/nginx/net/ngx_c_socket_request.cpp
+
+CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.i"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/xufang/GitLab/nginx/net/ngx_c_socket_request.cpp > CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.i
+
+CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.s"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/xufang/GitLab/nginx/net/ngx_c_socket_request.cpp -o CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.s
+
+CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.o: CMakeFiles/nginx.dir/flags.make
+CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.o: ../misc/ngx_c_threadpool.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.o"
+	/usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.o -c /home/xufang/GitLab/nginx/misc/ngx_c_threadpool.cpp
+
+CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.i"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/xufang/GitLab/nginx/misc/ngx_c_threadpool.cpp > CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.i
+
+CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.s"
+	/usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/xufang/GitLab/nginx/misc/ngx_c_threadpool.cpp -o CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.s
+
 # Object files for target nginx
 nginx_OBJECTS = \
 "CMakeFiles/nginx.dir/app/nginx.cpp.o" \
 "CMakeFiles/nginx.dir/app/ngx_c_conf.cpp.o" \
+"CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.o" \
 "CMakeFiles/nginx.dir/app/ngx_log.cpp.o" \
 "CMakeFiles/nginx.dir/app/ngx_setproctitle.cpp.o" \
 "CMakeFiles/nginx.dir/app/ngx_string.cpp.o" \
 "CMakeFiles/nginx.dir/signal/ngx_signal.cpp.o" \
 "CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.o" \
+"CMakeFiles/nginx.dir/proc/ngx_event.cpp.o" \
 "CMakeFiles/nginx.dir/proc/ngx_process_cycle.cpp.o" \
-"CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.o"
+"CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.o" \
+"CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.o" \
+"CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.o" \
+"CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.o" \
+"CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.o" \
+"CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.o"
 
 # External object files for target nginx
 nginx_EXTERNAL_OBJECTS =
 
 ../bin/nginx: CMakeFiles/nginx.dir/app/nginx.cpp.o
 ../bin/nginx: CMakeFiles/nginx.dir/app/ngx_c_conf.cpp.o
+../bin/nginx: CMakeFiles/nginx.dir/app/ngx_c_memory.cpp.o
 ../bin/nginx: CMakeFiles/nginx.dir/app/ngx_log.cpp.o
 ../bin/nginx: CMakeFiles/nginx.dir/app/ngx_setproctitle.cpp.o
 ../bin/nginx: CMakeFiles/nginx.dir/app/ngx_string.cpp.o
 ../bin/nginx: CMakeFiles/nginx.dir/signal/ngx_signal.cpp.o
 ../bin/nginx: CMakeFiles/nginx.dir/proc/ngx_daemon.cpp.o
+../bin/nginx: CMakeFiles/nginx.dir/proc/ngx_event.cpp.o
 ../bin/nginx: CMakeFiles/nginx.dir/proc/ngx_process_cycle.cpp.o
 ../bin/nginx: CMakeFiles/nginx.dir/net/ngx_c_socket.cpp.o
+../bin/nginx: CMakeFiles/nginx.dir/net/ngx_c_socket_accept.cpp.o
+../bin/nginx: CMakeFiles/nginx.dir/net/ngx_c_socket_conn.cpp.o
+../bin/nginx: CMakeFiles/nginx.dir/net/ngx_c_socket_inet.cpp.o
+../bin/nginx: CMakeFiles/nginx.dir/net/ngx_c_socket_request.cpp.o
+../bin/nginx: CMakeFiles/nginx.dir/misc/ngx_c_threadpool.cpp.o
 ../bin/nginx: CMakeFiles/nginx.dir/build.make
 ../bin/nginx: CMakeFiles/nginx.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Linking CXX executable ../bin/nginx"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/xufang/GitLab/nginx/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Linking CXX executable ../bin/nginx"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/nginx.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
