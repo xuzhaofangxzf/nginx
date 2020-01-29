@@ -93,6 +93,9 @@ bool ngx_c_threadpool::createThread(int threadNum)
 ***********************************************************/
 void * ngx_c_threadpool::ThreadFunc(void *threadData)
 {
+    /*
+        
+    */
     ThreadItem *pThread = static_cast<ThreadItem*>(threadData);
     ngx_c_threadpool *pThreadPoolObj = pThread->_pThis;
     char *jobbuf = NULL;
@@ -115,7 +118,7 @@ void * ngx_c_threadpool::ThreadFunc(void *threadData)
         //老师也在《c++入门到精通 c++ 98/11/14/17》里第六章第十三节谈过虚假唤醒，实际上是一个意思；
         //老师也在《c++入门到精通 c++ 98/11/14/17》里第六章第八节谈过条件变量、wait()、notify_one()、notify_all()，其实跟这里的pthread_cond_wait、pthread_cond_signal、pthread_cond_broadcast非常类似
         //pthread_cond_wait()函数，如果只有一条消息 唤醒了两个线程干活，那么其中有一个线程拿不到消息，那如果不用while写，就会出问题，所以被惊醒后必须再次用while拿消息，拿到才走下来；
-        while ((jobbuf = g_socket.outMsgRecvQueue()) == NULL && m_shutdown == false)
+        while ((pThreadPoolObj->m_MsgRecvQueue.size() == 0) == NULL && m_shutdown == false)
         {
             ngx_log_stderr(err, "ThreadFunc: pthread_cond_wait before tid = %u", tid);
             /*
@@ -135,22 +138,25 @@ void * ngx_c_threadpool::ThreadFunc(void *threadData)
            ngx_log_stderr(0, "wake up the thread id = %u", tid);
            
         }
-        err = pthread_mutex_unlock(&m_pthreadMutex); //解锁mutex
+        
+        if (m_shutdown)
+        {
+            err = pthread_mutex_unlock(&m_pthreadMutex); //解锁mutex
+            break;
+        }
+        //处理接收到的消息
+        jobbuf = pThreadPoolObj->m_MsgRecvQueue.front();
+        pThreadPoolObj->m_MsgRecvQueue.pop_front();
+        --pThreadPoolObj->m_iRecvMsgQueueCount;
+
+        err = pthread_mutex_unlock(&m_pthreadMutex); //解锁mutex        
         if (err != 0)
         {
             ngx_log_stderr(err, "ThreadFunc: pthread_mutex_unlock failed: %s", strerror(err));
         }
-        
-        if (m_shutdown)
-        {
-            if (jobbuf != NULL)
-            {
-                Cmem.FreeMemory(jobbuf);
-            }
-            break;
-        }
-        //处理数据
         ++pThreadPoolObj->m_iRunningThreadNum;
+        
+        g_socket.threadRecvProcFunc(jobbuf);
         
         //先打印处理
         
@@ -224,7 +230,7 @@ void ngx_c_threadpool::stopAll()
  * 返回值:
  *    void 
 ***********************************************************/
-void ngx_c_threadpool::Call(int irmqc)
+void ngx_c_threadpool::Call()
 {
     int err = pthread_cond_signal(&m_pthreadCond); //唤醒一个等待的线程
     if(err != 0 )
@@ -244,4 +250,52 @@ void ngx_c_threadpool::Call(int irmqc)
         
     }
     return;
+}
+
+/**********************************************************
+ * 函数名称: ngx_c_threadpool::inMsgRecvQueueAndSignal
+ * 函数描述: 收到一个完整消息后，入消息队列，并触发线程池中线程来处理该消息
+ * 函数参数:
+ *      char *buf:指向消息的指针
+ * 返回值:
+ *    void 
+***********************************************************/
+void ngx_c_threadpool::inMsgRecvQueueAndSignal(char *buf)
+{
+    int err = pthread_mutex_lock(&m_pthreadMutex);
+    if (err != 0)
+    {
+        ngx_log_stderr(err, "ngx_c_threadpool::inMsgRecvQueueAndSignal pthread_mutex_lock(&m_pthreadMutex) failed");
+
+    }
+    m_MsgRecvQueue.push_back(buf);
+    ++m_iRecvMsgQueueCount;
+    if (err !=0 )
+    {
+        ngx_log_stderr(err, "ngx_c_threadpool::inMsgRecvQueueAndSignal pthread_mutex_unlock(&m_pthreadMutex) failed");
+    }
+    
+    Call();
+    return;
+    
+}
+/**********************************************************
+ * 函数名称: ngx_c_threadpool::clearMsgRecvQueue
+ * 函数描述: 清理接收消息队列
+ * 函数参数:
+ *      空
+ * 返回值:
+ *    void 
+***********************************************************/
+void ngx_c_threadpool::clearMsgRecvQueue()
+{
+    char *sTmpMemPoint;
+    CMemory& Cmem = CMemory::GetMemory();
+    //不需要再互斥了把?
+    while (!m_MsgRecvQueue.empty())
+    {
+        sTmpMemPoint = m_MsgRecvQueue.front();
+        m_MsgRecvQueue.pop_front();
+        Cmem.FreeMemory(sTmpMemPoint);
+    }
 }

@@ -189,9 +189,10 @@ void CSocket::ngx_event_accept(lpngx_connection_t oldc)
         }
     }
     newc->listening = oldc->listening; //连接对象 和监听对象关联，方便通过连接对象找监听对象【关联到监听端口】
-    newc->w_ready = 1; //标记可以写，新连接写事件肯定是ready的；【从连接池拿出一个连接时这个连接的所有成员都是0】
+    //newc->w_ready = 1; //标记可以写，新连接写事件肯定是ready的；【从连接池拿出一个连接时这个连接的所有成员都是0】
     //设置数据来时的读处理函数，其实官方nginx中是ngx_http_wait_request_handler()
-    newc->rhandler = &CSocket::ngx_wait_request_handler; 
+    newc->rhandler = &CSocket::ngx_read_request_handler; 
+    newc->whandler = &CSocket::ngx_write_request_handler;
     //客户端应该主动发送第一次的数据，这里将读事件加入epoll监控
     if (ngx_epoll_add_event(s,              //socket句柄
                             1, 0,           //读写事件
@@ -214,7 +215,7 @@ void CSocket::ngx_event_accept(lpngx_connection_t oldc)
 
 /**********************************************************
  * 函数名称: CSocket::ngx_close_accepted_connection
- * 函数描述: 实仓连接,病关闭socket
+ * 函数描述: 释放连接,并关闭socket
  * 函数参数:
  *      lpngx_connection_t c: 传入要关闭的连接
  * 返回值:
@@ -222,6 +223,7 @@ void CSocket::ngx_event_accept(lpngx_connection_t oldc)
 ***********************************************************/
 void CSocket::ngx_close_connection(lpngx_connection_t c)
 {
+    ngx_free_connection(c);
     if (close(c->fd) == -1)
     {
         ngx_log_error_core(NGX_LOG_ALERT, errno, "CSockt::ngx_close_accepted_connection: close fd = %d failed", c->fd);

@@ -45,4 +45,5 @@ extern sig_atomic_t ngx_reap;
 
 extern CSocket       g_socket;
 extern ngx_c_threadpool g_threadpool;
+extern int g_stopEvent; //标志程序退出, 0:不退出 1:退出
 #endif

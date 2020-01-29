@@ -28,4 +28,5 @@ int g_daemonized = 0;         //守护进程标记，标记是否启用了守护
 sig_atomic_t ngx_reap;      //标记子进程状态变化[一般是子进程发来SIGCHLD信号表示退出]
 CSocket g_socket;
 ngx_c_threadpool  g_threadpool;      //线程池全局对象
+int g_stopEvent; //标志程序退出, 0:不退出 1:退出
 

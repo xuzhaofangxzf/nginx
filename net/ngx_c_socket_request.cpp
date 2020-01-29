@@ -19,7 +19,7 @@
 #include "ngx_c_socket.hpp"
 
 //来数据时候的处理，当连接上有数据来的时候，本函数会被ngx_epoll_process_events()所调用  ,官方的类似函数为ngx_http_wait_request_handler();
-void CSocket::ngx_wait_request_handler(lpngx_connection_t c)
+void CSocket::ngx_read_request_handler(lpngx_connection_t c)
 {  
     ngx_log_stderr(errno,"22222222222222222222222.");
     ssize_t recLen = recvProc(c, c->pRecvBuf, c->iRecvLen);
@@ -32,7 +32,7 @@ void CSocket::ngx_wait_request_handler(lpngx_connection_t c)
     switch (c->curState)
     {
     case _PKG_HD_INIT:
-        if (recLen == m_iLenPkg_Header)//正好收到完整的包头,然后进行拆包
+        if (recLen == m_iLenPkgHeader)//正好收到完整的包头,然后进行拆包
         {
             ngx_log_stderr(0, "_PKG_HD_INIT:receive head ok");
 
@@ -191,14 +191,14 @@ void CSocket::ngx_wait_request_handler_proc_phase1(lpngx_connection_t c)
     ngx_log_stderr(0, "Packege len is %d", e_pkgLen);
 
     //恶意包或者错误包的判断
-    if (e_pkgLen < m_iLenPkg_Header)
+    if (e_pkgLen < m_iLenPkgHeader)
     {
         //伪造包/或者包错误，否则整个包长怎么可能比包头还小？（整个包长是包头+包体，就算包体为0字节，那么至少e_pkgLen == m_iLenPkgHeader）
         //报文总长度 < 包头长度，认定非法用户，废包
         //状态和接收位置都复原，这些值都有必要，因为有可能在其他状态比如_PKG_HD_RECVING状态调用这个函数；
         c->curState = _PKG_HD_INIT;      
         c->pRecvBuf = c->dataHeadInfo;
-        c->iRecvLen = m_iLenPkg_Header;
+        c->iRecvLen = m_iLenPkgHeader;
         ngx_log_stderr(0, "all the length is less than header!");
     }
     else if (e_pkgLen > (_PKG_MAX_LENGTH - 1000))
@@ -207,29 +207,28 @@ void CSocket::ngx_wait_request_handler_proc_phase1(lpngx_connection_t c)
         //复原状态
         c->curState = _PKG_HD_INIT;      
         c->pRecvBuf = c->dataHeadInfo;
-        c->iRecvLen = m_iLenPkg_Header;
+        c->iRecvLen = m_iLenPkgHeader;
         ngx_log_stderr(0, "package is too large!");
     }
     //合法的数据包,正常处理
     else
     {
         //分配内存,开始接收包体,长度是 消息头长度  + 包头长度 + 包体长度
-        char *pTmpBuffer = (char*)Cmem.AllocMemory(/*m_iLenMsgHeader +*/ e_pkgLen, false); //不需要memset
-        c->ifNewRecvMem = true; //标记动态申请了内存,以便后续释放
-        c->pNewMemPointer = pTmpBuffer; //内存开始指针
+        char *pTmpBuffer = (char*)Cmem.AllocMemory(m_iLenMsgHeader + e_pkgLen, false); //不需要memset
+        //c->ifNewRecvMem = true; //标记动态申请了内存,以便后续释放
+        c->precvMemPointer = pTmpBuffer; //内存开始指针
         ngx_log_stderr(0, "help me!");
 
-        //为了测试,先取消这里接收消息头
-        #if 0
+
         //a)先填写消息头内容
         LPSTRUC_MSG_HEADER pTmpMsgHeader = (LPSTRUC_MSG_HEADER)pTmpBuffer;
         pTmpMsgHeader->pConn = c;
         pTmpMsgHeader->iCurrsequence = c->iCurrsequence; //收到包时的连接池中连接序号记录到消息头里来，以备将来用；
-        #endif
+
         //b)包头内容
-        //pTmpBuffer += m_iLenMsgHeader;
-        memcpy(pTmpBuffer, pPkgHeader, m_iLenPkg_Header); //把收到的包头拷贝进去
-        if (e_pkgLen == m_iLenPkg_Header)
+        pTmpBuffer += m_iLenMsgHeader;
+        memcpy(pTmpBuffer, pPkgHeader, m_iLenPkgHeader); //把收到的包头拷贝进去
+        if (e_pkgLen == m_iLenPkgHeader)
         {
             //该报文只有包头无包体(允许只有一个包头)
             //相当于接收完整了,直接进入消息队列,进行后续业务逻辑处理
@@ -241,8 +240,8 @@ void CSocket::ngx_wait_request_handler_proc_phase1(lpngx_connection_t c)
         {
             //开始接收包体
             c->curState = _PKG_BD_INIT; //当前状态发生改变，包头刚好收完，准备接收包体
-            c->pRecvBuf = pTmpBuffer + m_iLenPkg_Header; //pTmpBuffer指向包体的开始位置
-            c->iRecvLen = e_pkgLen - m_iLenPkg_Header; //e_pkgLen是整个数据包(包头+包体)的大小,求出包体的长度
+            c->pRecvBuf = pTmpBuffer + m_iLenPkgHeader; //pTmpBuffer指向包体的开始位置
+            c->iRecvLen = e_pkgLen - m_iLenPkgHeader; //e_pkgLen是整个数据包(包头+包体)的大小,求出包体的长度
 
         }
         
@@ -264,12 +263,10 @@ void CSocket::ngx_wait_request_handler_proc_phase1(lpngx_connection_t c)
 void CSocket::ngx_wait_request_handler_proc_phaselast(lpngx_connection_t c)
 {
 
-    int irmqc = 0;
-    inMsgRecvQueue(c->pNewMemPointer, irmqc); //返回消息队列当前的数量irmqc
+    //inMsgRecvQueue(c->pNewMemPointer, irmqc); //返回消息队列当前的数量irmqc
     //激发线程池中的某个线程来处理业务逻辑
-    g_threadpool.Call(irmqc);
-    c->ifNewRecvMem = false;
-    c->pNewMemPointer = NULL;
+    g_threadpool.inMsgRecvQueueAndSignal(c->precvMemPointer);
+    c->precvMemPointer = NULL;
     c->curState = _PKG_HD_INIT;
     c->pRecvBuf = c->dataHeadInfo;
     c->iRecvLen = m_iLenMsgHeader;
@@ -286,13 +283,17 @@ void CSocket::ngx_wait_request_handler_proc_phaselast(lpngx_connection_t c)
  *    void
 ***********************************************************/
 
-void CSocket::inMsgRecvQueue(char *buf, int &imsgQueCount)
+// void CSocket::inMsgRecvQueue(char *buf, int &imsgQueCount)
+// {
+//     CMutexLock lock(&m_recvMsgQueueMutex); //自动加锁
+//     m_MsgRecvQueue.push_back(buf); //入消息队列
+//     ++m_iRecvMsgQueueCount; //消息队列长度,比m_MsgRecvQueue.size()更高效
+//     imsgQueCount = m_iRecvMsgQueueCount; //接收消息队列当前信息数量
+//     ngx_log_stderr(0,"received a messaage!");
+// }
+ssize_t sendProc(lpngx_connection_t c, char *buff, ssize_t size)
 {
-    CMutexLock lock(&m_recvMsgQueueMutex); //自动加锁
-    m_MsgRecvQueue.push_back(buf); //入消息队列
-    ++m_iRecvMsgQueueCount; //消息队列长度,比m_MsgRecvQueue.size()更高效
-    imsgQueCount = m_iRecvMsgQueueCount; //接收消息队列当前信息数量
-    ngx_log_stderr(0,"received a messaage!");
+
 }
 
 /**********************************************************
