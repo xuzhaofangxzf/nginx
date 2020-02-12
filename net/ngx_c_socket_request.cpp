@@ -295,7 +295,7 @@ ssize_t sendProc(lpngx_connection_t c, char *buff, ssize_t size)
 {
 
 }
-
+#if 0
 /**********************************************************
  * 函数名称: CSocket::outMsgRecvQueue
  * 函数描述: 从消息队列中取出消息,以备后续处理
@@ -318,7 +318,7 @@ char *CSocket::outMsgRecvQueue()
     return sTmpMsgBuf;
     
 }
-
+#endif
 void CSocket::threadRecvProcFunc(char *pMsgBuf)
 {
 

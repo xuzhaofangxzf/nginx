@@ -133,7 +133,7 @@ bool CSocket::initialize_subproc()
         return false;
     }
     
-    if (m_ifKickTimeCount == 1)
+    if (m_ifKickTimeClkEnable == 1)
     {
         ThreadItem *pTimeMonitor; //专门用来处理到期不发心跳包的用户,将其剔除线程
         m_threadVector.push_back(pTimeMonitor = new ThreadItem(this));
@@ -426,7 +426,7 @@ void CSocket::readConf()
     m_listenPortCount = pConfig->getIntDefault("ListenPortCount",m_listenPortCount);
     m_recyConnectionWaitTime = pConfig->getIntDefault("Sock_RecyConnectionWaitTime", m_recyConnectionWaitTime);
 
-    m_ifKickTimeCount = pConfig->getIntDefault("Sock_WaitTimeEnable", 0);
+    m_ifKickTimeClkEnable = pConfig->getIntDefault("Sock_WaitTimeEnable", 0);
     m_iWaitTime = pConfig->getIntDefault("Sock_MaxWaitTime", m_iWaitTime);
     m_iWaitTime = (m_iWaitTime > 5)?m_iWaitTime:5;
 
@@ -857,7 +857,7 @@ void CSocket::msgSend(char *psendBuf)
 ***********************************************************/
 void CSocket::zdCloseSocketProc(lpngx_connection_t pConn)
 {
-    if (m_ifKickTimeCount == 1)
+    if (m_ifKickTimeClkEnable == 1)
     {
         deletFromTimerQueue(pConn); //从事件队列中把连接删除
     }
@@ -1041,5 +1041,31 @@ void *CSocket::serverSendQueueThread(void *threadData)
        }
     } // end while
     return (void *)0;
+    
+}
+
+bool CSocket::testFlood(lpngx_connection_t pConn)
+{
+    struct timeval struCurTime; //当前时间结构
+    uint64_t iCurTime; //当前时间(单位:ms)
+    bool reco = false;
+    iCurTime = (struCurTime.tv_sec * 1000 + struCurTime.tv_usec / 1000); //转化为ms
+    if (iCurTime - pConn->floodKickLastTime < m_floodTimeInterval)
+    {
+        pConn->floodAttackCount++;
+        pConn->floodKickLastTime = iCurTime;
+    }
+    else
+    {
+        //恢复计数值
+        pConn->floodAttackCount = 0;
+        pConn->floodKickLastTime = iCurTime;
+    }
+    if (pConn->floodAttackCount >= m_floodKickCount)
+    {
+        reco = true;
+    }
+    return reco;
+    
     
 }

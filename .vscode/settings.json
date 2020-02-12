@@ -72,7 +72,9 @@
         "bit": "cpp",
         "cerrno": "cpp",
         "iostream": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "map": "cpp",
+        "__tree": "cpp"
     },
     "workbench.colorTheme": "Default Dark+",
     "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"

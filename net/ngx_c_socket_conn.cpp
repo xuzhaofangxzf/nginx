@@ -50,7 +50,9 @@ void ngx_connection_s::getOneToUse()
     pSendMemHeader = NULL;
     events = 0;
     lastPingTime = time(NULL);
-    
+
+    floodAttackCount = 0;
+    floodKickLastTime = 0;
 
 }
 /**********************************************************

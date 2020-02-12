@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include "ngx_c_socket.hpp"
+#include "ngx_logiccomm.hpp"
 
 
 class CLogicSocket : public CSocket

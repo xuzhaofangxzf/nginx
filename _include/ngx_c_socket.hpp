@@ -102,6 +102,9 @@ struct ngx_connection_s
     unsigned int iSendLen; //要发送的数据长度
     lpngx_connection_t next; //这是个指针【等价于传统链表里的next成员：后继指针】，指向下一个本类型对象，用于把空闲的连接池对象串起来构成一个单向链表，方便取用
 
+    //和网络安全相关
+    uint64_t floodKickLastTime; //flood攻击上次收到包的时间
+    int floodAttackCount; //flood攻击在该时间收到包的次数统计
 };
 
 //消息头，引入的目的是当收到数据包时，额外记录一些内容以备将来使用
@@ -134,7 +137,7 @@ public:
 
 //处理消息相关
 public:
-    char * outMsgRecvQueue(); //将一个消息出队列
+    //char * outMsgRecvQueue(); //将一个消息出队列
     virtual void threadRecvProcFunc(char* pMsgBuf); //处理客户端请求，虚函数，因为将来可以考虑自己来写子类继承本类
     //心跳包检测时间到，该去检测心跳包是否超时的事宜，本函数只是把内存释放，子类应该重新事先该函数以实现具体的判断动作
     virtual void procPingTimeoutCheking(LPSTRUC_MSG_HEADER tmpmsg, time_t curTime);
@@ -181,21 +184,25 @@ private:
     //和时间先关的函数
     void addToTimeQueue(lpngx_connection_t pConn); //设置剔除时钟(向map表中增加内容)
     LPSTRUC_MSG_HEADER removeFirstTimer(); //从m_timeQueuemap移除最早的时间，并把最早这个时间所在的项的值所对应的指针 返回，调用者负责互斥，所以本函数不用互斥，
-    time_t getLatestTime(); //从multimap中取得最早的时间
+    time_t getEarliestTime(); //从multimap中取得最早的时间
     LPSTRUC_MSG_HEADER getOverTimeTimer(time_t curTime); //根据当前的事件,从m_timeQueuemap找到比这个事件更老(更早)的1个节点
     void deletFromTimerQueue(lpngx_connection_t pConn); //把指定用户TCP连接从timer表中删除
     void clearAllFromTimerQueue(); //清理事件队列中所有的内容
 
+//和网络安全相关
+bool testFlood(lpngx_connection_t pConn);
 //线程先关函数
 
     static void *serverSendQueueThread(void *threadData); //专门用来发送数据的线程
     static void *serverRecyConnectionThread(void *threadData); //专门用来回收连接的线程
-    static void *serverTimerQueuemonitorThread(void *threadData); //事件队列监视线程,处理到期不发心跳包的用户的线程函数
+    static void *serverTimerQueueMonitorThread(void *threadData); //事件队列监视线程,处理到期不发心跳包的用户的线程函数
 
 protected:
     //网络通讯相关成员变量
     size_t m_iLenPkgHeader; //包头长度sizeof(COMM_PKG_HEADER)
     size_t m_iLenMsgHeader; //消息头长度sizeof(STRUC_MSG_HEADER)
+    //和时间相关
+    int m_ifTimeOutKick; //当时间到达Sock_MaxWaitTime指定的时间时，直接把客户端剔除，只有当sock_waitTimeEnable = 1时才有效
     int m_iWaitTime; //多少秒检测一次是否心跳超时,只有当sock_waitTimeEnable = 1时才有效
 
 private:
@@ -259,7 +266,13 @@ private:
     int m_iRecvMsgQueueCount; //接收消息队列大小
 
     //多线程相关
-    pthread_mutex_t m_recvMsgQueueMutex; //收消息队列互斥量
+    //pthread_mutex_t m_recvMsgQueueMutex; //收消息队列互斥量
+    //在线用户相关
+    std::atomic<int> m_onlineUserCount; //当前在线用户数统计
+    //网络安全相关
+    int m_floodAkEnable; //flood攻击检测是否开启:1，开启，0，不开启
+    unsigned int m_floodTimeInterval; //表示每次收到数据包的时间间隔是100(毫秒)
+    int m_floodKickCount; //积累多少次剔除去
 };
 
 

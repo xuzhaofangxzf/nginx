@@ -135,6 +135,17 @@ void CLogicSocket::sendNoBodyPkgToClient(LPSTRUC_MSG_HEADER pMsgHeader, unsigned
 
 }
 //各种业务逻辑相关函数
+/**********************************************************
+ * 函数名称: CLogicSocket::_handleRegister
+ * 函数描述: 用户注册入口函数
+ * 函数参数:
+ *      lpngx_connection_t pConn:消息头
+ *      LPSTRUC_MSG_HEADER pMsgHeader: 消息类型
+ *      char *pPkgBody
+ *      unsigned short iBodyLength
+ * 返回值:
+ *    bool
+***********************************************************/
 bool CLogicSocket::_handleRegister(lpngx_connection_t pConn, LPSTRUC_MSG_HEADER pMsgHeader, char *pPkgBody, unsigned short iBodyLength)
 {
     ngx_log_stderr(0, "excute the function CLogicSocket::_handleRegister!");
@@ -143,10 +154,127 @@ bool CLogicSocket::_handleRegister(lpngx_connection_t pConn, LPSTRUC_MSG_HEADER 
     {
         return false;
     }
-    int iRecvLen = sizeof()
-}
-bool _handleLogin(lpngx_connection_t pConn, LPSTRUC_MSG_HEADER pMsgHeader, char *pPkgBody, unsigned short iBodyLength);
-bool _handlePing(lpngx_connection_t pConn, LPSTRUC_MSG_HEADER pMsgHeader, char *pPkgBody, unsigned short iBodyLength);
+    int iRecvLen = sizeof(STRUCT_REGISTER);
+    if (iRecvLen != iBodyLength)
+    {
+        return false;
+    }
+    /*
+        (2)对于同一个用户，可能同时会发送过来多个请求，造成多个线程同时为该用户服务，比如以网游为例，用户要在商店中买A物品，又要买B物品
+        而用户的钱只够买A或者B，不够同时买A和B。
+        如果用户发送购买命令过来买了一次A，又买了一次B，如果是两个线程执行同一个用户的这两次不同的购买命令，很可能造成这个用户同时购买成功了A和B。
+        所以，为了稳妥起见，针对某个用户的命令，我们一般都要互斥
+    */
+   CMutexLock lock(&pConn->logicProcMutex); //凡是和本用户有关的访问都要互斥
+   //(3)获取发送过来的整个数据
+   LPSTRUCT_REGISTER pRecvinfo = (LPSTRUCT_REGISTER)pPkgBody;
+   pRecvinfo->iType = ntohl(pRecvinfo->iType);
+   //防止客户端发送活来畸形包，导致服务器直接使用这个数据出现错误
+   pRecvinfo->username[sizeof(pRecvinfo->username) - 1] = '\0'; 
+   pRecvinfo->password[sizeof(pRecvinfo->password) - 1] = '\0';
+   //(4)这里可能还要考虑，根据业务逻辑，进一步判断数据的合法性
+   //当前该玩家的状态是否适合收到这个数据(比如，用户没有登陆，就不能购买物品等)。。。。
+   //(5)给客户端返回数据时，一般也是返回一个结构，这个结构内容需要由客户端/服务器协商，这里返回同样的结构
+   LPCOMM_PKG_HEADER pPkgHeader;
+   CMemory &Cmem = CMemory::GetMemory();
+   CCRC32 *pCRC32 = CCRC32::GetInstance();
+   int iSendLen = sizeof(STRUCT_REGISTER);
+   //(a)分配内存
+   char *pSendBuf = (char *)Cmem.AllocMemory(m_iLenMsgHeader + m_iLenPkgHeader + iSendLen, false);
+   //(b)填充消息头
+   memcpy(pSendBuf, pMsgHeader, m_iLenMsgHeader);
+   //(c)填充包头
+   pPkgHeader = (LPCOMM_PKG_HEADER)(pSendBuf + m_iLenMsgHeader);
+   pPkgHeader->mgsCode = _CMD_REGISTER;
+   pPkgHeader->mgsCode = htons(pPkgHeader->mgsCode);
+   pPkgHeader->pkgLen = htons(m_iLenPkgHeader + iSendLen);
+   //(d)填充包体
+   LPSTRUCT_REGISTER pSendInfo = (LPSTRUCT_REGISTER)(pSendBuf + m_iLenMsgHeader + m_iLenPkgHeader);
 
-//心跳包检测时间到,该去检测心跳包是否超市的事宜,本函数是把内存释放,子类应该重新实现该函数以实现具体的判断动作
-virtual void procPingTimeoutChecking(LPSTRUC_MSG_HEADER tmpMsg, time_t curTime);
+   //(e)包体内容确定好后，计算包体的CRC32的值
+   pPkgHeader->crc32 = pCRC32->Get_CRC((unsigned char *)pSendInfo, iSendLen);
+   pPkgHeader->crc32 = htonl(pPkgHeader->crc32);
+   //(f)发送数据包
+   msgSend(pSendBuf);
+   return true;
+
+}
+/**********************************************************
+ * 函数名称: CLogicSocket::_handleLogin
+ * 函数描述: 用户登陆入口函数
+ * 函数参数:
+ *      lpngx_connection_t pConn:消息头
+ *      LPSTRUC_MSG_HEADER pMsgHeader: 消息类型
+ *      char *pPkgBody
+ *      unsigned short iBodyLength
+ * 返回值:
+ *    bool
+***********************************************************/
+bool CLogicSocket::_handleLogin(lpngx_connection_t pConn, LPSTRUC_MSG_HEADER pMsgHeader, char *pPkgBody, unsigned short iBodyLength)
+{
+    ngx_log_stderr(0, "excute function CLogicSocket::_handleLogin()");
+    return true;
+}
+/**********************************************************
+ * 函数名称: CLogicSocket::_handlePing
+ * 函数描述: 接收并处理客户端发送过来的ping包
+ * 函数参数:
+ *      lpngx_connection_t pConn:消息头
+ *      LPSTRUC_MSG_HEADER pMsgHeader: 消息类型
+ *      char *pPkgBody
+ *      unsigned short iBodyLength
+ * 返回值:
+ *    bool
+***********************************************************/
+bool CLogicSocket::_handlePing(lpngx_connection_t pConn, LPSTRUC_MSG_HEADER pMsgHeader, char *pPkgBody, unsigned short iBodyLength)
+{
+    //心跳包没有包体
+    if (iBodyLength != 0)
+    {
+        return false;
+    }
+    CMutexLock lock(&pConn->logicProcMutex);
+    pConn->lastPingTime = time(NULL);
+    sendNoBodyPkgToClient(pMsgHeader, _CMD_PING);
+    ngx_log_stderr(0, "send back ping package success!");
+    return true;
+}
+/**********************************************************
+ * 函数名称: CLogicSocket::procPingTimeoutChecking
+ * 函数描述: 心跳包检测时间到,该去检测心跳包是否超时的事宜,本函数是类函数，实现具体的判断动作
+ * 函数参数:
+ *      lpngx_connection_t pConn:消息头
+ *      LPSTRUC_MSG_HEADER pMsgHeader: 消息类型
+ *      char *pPkgBody
+ *      unsigned short iBodyLength
+ * 返回值:
+ *    bool
+***********************************************************/
+void CLogicSocket::procPingTimeoutChecking(LPSTRUC_MSG_HEADER tmpMsg, time_t curTime)
+{
+    CMemory &Cmem = CMemory::GetMemory();
+    //连接没有断开
+    if (tmpMsg->iCurrsequence ==  tmpMsg->pConn->iCurrsequence)
+    {
+        lpngx_connection_t pConn = tmpMsg->pConn;
+        if (m_ifTimeOutKick == 1)
+        {
+            zdCloseSocketProc(pConn);
+        }
+        //超时剔除的判断标准:每次检查的时间间隔*3，超过这个时间没发送心跳包
+        else if((curTime - pConn->lastPingTime) > (m_iWaitTime * 3 + 10))
+        {
+            //如果此时该用户正好断线，切这个socket文件描述符正好立即被后续的连接复用，此时可能会无端关闭正常的socket
+            //这种情况也直接关闭连接
+            zdCloseSocketProc(pConn);
+        }
+        Cmem.FreeMemory(tmpMsg);
+    }
+    else
+    {
+        //连接已经断了
+        Cmem.FreeMemory(tmpMsg);
+    }
+    return;
+    
+}

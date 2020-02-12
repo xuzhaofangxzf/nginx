@@ -153,61 +153,66 @@ void CSocket::ngx_event_accept(lpngx_connection_t oldc)
             return;
         }//end if (s == -1)
         
-    //走到这里 accept成功
-    ngx_log_stderr(errno, "accept success accept sock = %d", s);
-    newc = ngx_get_connection(s); //从连接池中获取空闲连接
-    if (newc == NULL)
-    {
-        //连接池中的连接不可用,关闭socket并返回
-        if (close(s) == -1)
+        //走到这里 accept成功
+        ngx_log_stderr(errno, "accept success accept sock = %d", s);
+        newc = ngx_get_connection(s); //从连接池中获取空闲连接
+        if (newc == NULL)
         {
-            ngx_log_error_core(NGX_LOG_ALERT, errno, "CSocket::ngx_event_accept: close(%d) failed", s);
+            //连接池中的连接不可用,关闭socket并返回
+            if (close(s) == -1)
+            {
+                ngx_log_error_core(NGX_LOG_ALERT, errno, "CSocket::ngx_event_accept: close(%d) failed", s);
+            }
+            return;
+            
         }
-        return;
-        
-    }
-    //...........将来这里会判断是否连接超过最大允许连接数，现在，这里可以不处理
+        //...........将来这里会判断是否连接超过最大允许连接数，现在，这里可以不处理
 
-    //成功地拿到了连接池中的一个连接
-    memcpy(&newc->s_sockaddr, &servSockAddr, sockLen); //拷贝客户端地址到连接对象【要转成字符串ip地址参考函数ngx_sock_ntop()】
-    //{
-       //测试将收到的地址弄成字符串，格式形如"192.168.1.126:40904"或者"192.168.1.126"
-       char ipaddr[50]; 
-       memset(ipaddr,0,sizeof(ipaddr));
-       ngx_sock_ntop(&newc->s_sockaddr,1,ipaddr,sizeof(ipaddr)); //宽度给小点
-       ngx_log_stderr(0,"ip信息为%s\n",ipaddr);
-    //}
+        //成功地拿到了连接池中的一个连接
+        memcpy(&newc->s_sockaddr, &servSockAddr, sockLen); //拷贝客户端地址到连接对象【要转成字符串ip地址参考函数ngx_sock_ntop()】
+        //{
+        //测试将收到的地址弄成字符串，格式形如"192.168.1.126:40904"或者"192.168.1.126"
+        char ipaddr[50]; 
+        memset(ipaddr,0,sizeof(ipaddr));
+        ngx_sock_ntop(&newc->s_sockaddr,1,ipaddr,sizeof(ipaddr)); //宽度给小点
+        ngx_log_stderr(0,"ip信息为%s\n",ipaddr);
+        //}
 
-    if (!use_accept4)
-    {
-        if (setnonblocking(s) == false)
+        if (!use_accept4)
         {
-            ngx_log_error_core(NGX_LOG_WARN, errno, "accept setnonblocking failed socket (%d)", s);
-            //释放连接
+            if (setnonblocking(s) == false)
+            {
+                ngx_log_error_core(NGX_LOG_WARN, errno, "accept setnonblocking failed socket (%d)", s);
+                //释放连接
+                ngx_close_connection(newc);
+                return;
+            }
+        }
+        newc->listening = oldc->listening; //连接对象 和监听对象关联，方便通过连接对象找监听对象【关联到监听端口】
+        //newc->w_ready = 1; //标记可以写，新连接写事件肯定是ready的；【从连接池拿出一个连接时这个连接的所有成员都是0】
+        //设置数据来时的读处理函数，其实官方nginx中是ngx_http_wait_request_handler()
+        newc->rhandler = &CSocket::ngx_read_request_handler; 
+        newc->whandler = &CSocket::ngx_write_request_handler;
+        //客户端应该主动发送第一次的数据，这里将读事件加入epoll监控
+        if (ngx_epoll_operate_events(s,              //socket句柄
+                                EPOLL_CTL_ADD,  //事件类型(增加,其他还有删除/修改)
+                                EPOLLIN|EPOLLRDHUP, //标志，这里代表要增加的标志,EPOLLIN：可读，EPOLLRDHUP：TCP连接的远端关闭或者半关闭 ，如果边缘触发模式可以增加 EPOLLET
+                                0,
+                                newc) == -1)    //连接池中的连接
+        {
             ngx_close_connection(newc);
             return;
         }
-    }
-    newc->listening = oldc->listening; //连接对象 和监听对象关联，方便通过连接对象找监听对象【关联到监听端口】
-    //newc->w_ready = 1; //标记可以写，新连接写事件肯定是ready的；【从连接池拿出一个连接时这个连接的所有成员都是0】
-    //设置数据来时的读处理函数，其实官方nginx中是ngx_http_wait_request_handler()
-    newc->rhandler = &CSocket::ngx_read_request_handler; 
-    newc->whandler = &CSocket::ngx_write_request_handler;
-    //客户端应该主动发送第一次的数据，这里将读事件加入epoll监控
-    if (ngx_epoll_add_event(s,              //socket句柄
-                            1, 0,           //读写事件
-                            0,        //其他补充标记,EPOLLET(高速模式,边沿出发)
-                            EPOLL_CTL_ADD,  //事件类型(增加,其他还有删除/修改)
-                            newc) == -1)    //连接池中的连接
-    {
-        ngx_close_connection(newc);
-        return;
-    }
-    break;
-    /*
-        这种do while的形式比较特别,如果去掉的话,因为前面某些条件达不到,后面的就无法执行到,所以该
-        形式的循环能保证后面的执行到才结束.
-    */
+        if (m_ifKickTimeCount == 1)
+        {
+            addToTimeQueue(newc);
+        }
+        ++m_onlineUserCount； //连入用户数+1
+        break;
+        /*
+            这种do while的形式比较特别,如果去掉的话,因为前面某些条件达不到,后面的就无法执行到,所以该
+            形式的循环能保证后面的执行到才结束.
+        */
     } while (1); 
 
     return;
