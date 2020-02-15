@@ -65,9 +65,11 @@ void CSocket::ngx_read_request_handler(lpngx_connection_t c)
         }
         break;
     case _PKG_BD_INIT:
+        ngx_log_stderr(0, "_PKG_BD_INIT: Receiving pakage body...");
         if (recLen == c->iRecvLen)
         {
-            //包头刚收完,准备接收包体
+            //包体接收完毕
+            ngx_log_stderr(0, "_PKG_BD_INIT: Received pakage body ok!");
             ngx_wait_request_handler_proc_phaselast(c);
         }
         else
@@ -81,6 +83,8 @@ void CSocket::ngx_read_request_handler(lpngx_connection_t c)
         if (c->iRecvLen == recLen)
         {
             //包体接收完整
+            ngx_log_stderr(0, "_PKG_BD_RECVING: Received pakage body ok!");
+
             ngx_wait_request_handler_proc_phaselast(c);
         }
         else
@@ -125,6 +129,7 @@ ssize_t CSocket::recvProc(lpngx_connection_t c, char *buff, ssize_t bufLen)
     n = recv(c->fd, buff, bufLen, 0);
     if (n ==0)
     {
+        ngx_log_stderr(0, "recv 0, maybe the client has been closed, errno is %s", strerror(errno));
         //客户端关闭(应该是正常完成了4次挥手),直接回收连接,关闭socket
         ngx_close_connection(c);
         return -1;
@@ -185,7 +190,7 @@ void CSocket::ngx_wait_request_handler_proc_phase1(lpngx_connection_t c)
 {
     CMemory& Cmem = CMemory::GetMemory();
     LPCOMM_PKG_HEADER pPkgHeader;
-    pPkgHeader = (LPCOMM_PKG_HEADER)c->dataHeadInfo;
+    pPkgHeader = (LPCOMM_PKG_HEADER)c->dataHeadInfo; //刚开始dataHeadInfo与c->pRecvBuf是一样的
     unsigned short e_pkgLen;
     e_pkgLen = ntohs(pPkgHeader->pkgLen); //注意这里网络字节序转本机序
     ngx_log_stderr(0, "Packege len is %d", e_pkgLen);
@@ -217,7 +222,7 @@ void CSocket::ngx_wait_request_handler_proc_phase1(lpngx_connection_t c)
         char *pTmpBuffer = (char*)Cmem.AllocMemory(m_iLenMsgHeader + e_pkgLen, false); //不需要memset
         //c->ifNewRecvMem = true; //标记动态申请了内存,以便后续释放
         c->precvMemPointer = pTmpBuffer; //内存开始指针
-        ngx_log_stderr(0, "help me!");
+        ngx_log_stderr(0, "starting to receive the package...");
 
 
         //a)先填写消息头内容
@@ -238,6 +243,7 @@ void CSocket::ngx_wait_request_handler_proc_phase1(lpngx_connection_t c)
         }
         else
         {
+            ngx_log_stderr(0, "starting to receive body package...");
             //开始接收包体
             c->curState = _PKG_BD_INIT; //当前状态发生改变，包头刚好收完，准备接收包体
             c->pRecvBuf = pTmpBuffer + m_iLenPkgHeader; //pTmpBuffer指向包体的开始位置
@@ -265,11 +271,12 @@ void CSocket::ngx_wait_request_handler_proc_phaselast(lpngx_connection_t c)
 
     //inMsgRecvQueue(c->pNewMemPointer, irmqc); //返回消息队列当前的数量irmqc
     //激发线程池中的某个线程来处理业务逻辑
+    ngx_log_stderr(0, "starting to process the package!");
     g_threadpool.inMsgRecvQueueAndSignal(c->precvMemPointer);
     c->precvMemPointer = NULL;
     c->curState = _PKG_HD_INIT;
     c->pRecvBuf = c->dataHeadInfo;
-    c->iRecvLen = m_iLenMsgHeader;
+    c->iRecvLen = m_iLenPkgHeader;
     return;
 }
 
@@ -291,9 +298,57 @@ void CSocket::ngx_wait_request_handler_proc_phaselast(lpngx_connection_t c)
 //     imsgQueCount = m_iRecvMsgQueueCount; //接收消息队列当前信息数量
 //     ngx_log_stderr(0,"received a messaage!");
 // }
-ssize_t sendProc(lpngx_connection_t c, char *buff, ssize_t size)
+/**********************************************************
+ * 函数名称: CSocket::sendProc
+ * 函数描述: 发送数据专用函数，返回本次发送的字节数
+ * 函数参数:
+ *      lpngx_connection_t c: 连接
+ *      char *buff: 发送的消息
+ *      ssize_t size: 要发送的消息长度
+ * 返回值:
+ *    void
+***********************************************************/
+ssize_t CSocket::sendProc(lpngx_connection_t c, char *buff, ssize_t size)
 {
+    ssize_t n;
+    for (;;)
+    {
+        n = send(c->fd, buff, size, 0);
+        if (n > 0)
+        {
+            //发送成功了一些数据,但是发送了多少,我们不关心,也不需要再次send
+            //这里有两种情况
+            //(1) n == size,表示完全发送完毕
+            //(2) n < size, 没发送完毕,肯定是发送缓冲区满了,所以也不必继续发送,直接返回.
+            return n;
+        }
+        if (n ==0)
+        {
+            //send 返回0表示对方主动关闭了连接,我们并不在send动作里处理诸如关闭socket这种动作,集中到recv那里去处理
+            //连接断开epoll会通知并且recvproc里会处理
+            return 0;
 
+        }
+        if (errno == EAGAIN) 
+        {
+            //内核缓冲区满了,不算错误
+            return -1; //表示发送缓冲区满了
+        }
+
+        else if (errno == EINTR)
+        {
+            //这个也不算错误,收到某个信号导致send产生这个错误?
+            ngx_log_stderr(errno, "CSocket::sendProc: send failed");
+        }
+
+        else
+        {
+            //表示其他错误,socket连接需要在recv来统一处理断开
+            return -2;
+        }
+        
+        
+    }
 }
 #if 0
 /**********************************************************
@@ -321,6 +376,60 @@ char *CSocket::outMsgRecvQueue()
 #endif
 void CSocket::threadRecvProcFunc(char *pMsgBuf)
 {
+    ngx_log_stderr(0, "excute father!");
+    return;
+}
 
+/**********************************************************
+ * 函数名称: CSocket::ngx_write_request_handler
+ * 函数描述: 设置数据发送时写的处理函数,当数据可写时epoll通知,在int CSocket::ngx_epoll_process_events(int timer)中调用此函数
+ * 函数参数:
+ *      lpngx_connection_t pConn: 连接
+ * 返回值:
+ *    void
+***********************************************************/
+void CSocket::ngx_write_request_handler(lpngx_connection_t pConn)
+{
+    CMemory &Cmem = CMemory::GetMemory();
+    ssize_t sendSize = sendProc(pConn, pConn->pSendBuf, pConn->iSendLen);
+    if (sendSize >0 && sendSize != pConn->iSendLen)
+    {
+        //没有全部发送完毕,记录剩余,方便下次sendproc时使用
+        pConn->pSendBuf += sendSize;
+        pConn->iSendLen -= sendSize;
+        return;
+    }
+    else if (sendSize == -1)
+    {
+        //这种情况应该不会出现,通知我发送数据,说明发送缓冲区没满,但是这种情况是发送缓冲区满了
+        ngx_log_stderr(errno, "CScoket::ngx_write_request_handler: sendSize == -1, cannot be this");
+        return;
+    }
+    if (sendSize > 0 && sendSize == pConn->iSendLen)
+    {
+        //成功发送完毕,把写事件通知从epoll中干掉,其他情况，那就是断线了，等着系统内核把连接从红黑树中干掉即可；
+        if (ngx_epoll_operate_events(
+                        pConn->fd,
+                        EPOLL_CTL_MOD,
+                        EPOLLOUT,
+                        1,
+                        pConn) == -1)
+        {
+            ngx_log_stderr(errno, "CScoket::ngx_write_request_handler: ngx_epoll_operate_events failed");
+        }
+        ngx_log_stderr(errno, "CScoket::ngx_write_request_handler: data send over! ");
+
+    }
+    //能够走下来的,要么数据发送完毕,要么对端断开连接,执行收尾工作.
+    //数据发送完毕,或者把需要发送的数据清除,都说明发送缓冲区可能有地方了,让发送线程往下走,判断能否发送新数据
+    if (sem_post(&m_semEventSendQueue) == -1)
+    {
+        ngx_log_stderr(0, "CSocket::ngx_write_request_handler:sem_post failed");
+
+    }
+    Cmem.FreeMemory(pConn->pSendMemHeader); //释放内存
+    pConn->pSendMemHeader = NULL;
+    
+    --pConn->iThrowSendCount;
     return;
 }

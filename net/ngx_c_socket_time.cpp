@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include "ngx_c_socket.hpp"
 #include "ngx_func.hpp"
+#include "ngx_global.hpp"
 /**********************************************************
  * 函数名称: CSocket::addToTimeQueue
  * 函数描述: 设置剔除时钟(向map表中增加内容)
@@ -79,7 +80,6 @@ LPSTRUC_MSG_HEADER CSocket::getOverTimeTimer(time_t curTime)
     {
         return NULL;
     }
-    CMemory &Cmem = CMemory::GetMemory();
     LPSTRUC_MSG_HEADER pTmp;
     time_t earliestTime = getEarliestTime();
     if (earliestTime <= curTime)

@@ -181,7 +181,8 @@ static void ngx_worker_process_cycle(int inum, const char *pprocname)
         //ngx_log_error_core(0, 0, "This is child process num = %d, pid = %d ", inum, ngx_pid);
         ngx_process_events_and_timers(); //处理网络事件和定时器事件
     }
-    
+   g_threadpool.stopAll();
+   g_socket.shutDown_subproc(); 
 }
 /*
 * 函数名称: ngx_worker_process_init

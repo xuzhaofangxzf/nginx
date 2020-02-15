@@ -155,6 +155,12 @@ void CSocket::ngx_event_accept(lpngx_connection_t oldc)
         
         //走到这里 accept成功
         ngx_log_stderr(errno, "accept success accept sock = %d", s);
+        if (m_onlineUserCount >= m_worker_connections)
+        {
+            ngx_log_stderr(0, "Accepted user number is over permited (max acceptable number is %d), close the socket(%d)", m_worker_connections, s);
+            close(s);
+            return;
+        }
         newc = ngx_get_connection(s); //从连接池中获取空闲连接
         if (newc == NULL)
         {
@@ -203,11 +209,11 @@ void CSocket::ngx_event_accept(lpngx_connection_t oldc)
             ngx_close_connection(newc);
             return;
         }
-        if (m_ifKickTimeCount == 1)
+        if (m_ifKickTimeEnable == 1)
         {
             addToTimeQueue(newc);
         }
-        ++m_onlineUserCount； //连入用户数+1
+        ++m_onlineUserCount; //连入用户数+1
         break;
         /*
             这种do while的形式比较特别,如果去掉的话,因为前面某些条件达不到,后面的就无法执行到,所以该

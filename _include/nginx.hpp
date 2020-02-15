@@ -9,6 +9,7 @@
 #include "ngx_global.hpp"
 #include "ngx_c_socket.hpp"
 #include "ngx_c_memory.hpp"
+#include "ngx_c_slogic.hpp"
 /*globle variate for settings*/
 
 //extern char **environ;
@@ -26,7 +27,7 @@ int g_daemonized = 0;         //守护进程标记，标记是否启用了守护
 /*sig_atomic_t:系统定义的类型：访问或改变这些变量需要在计算机的一条指令内完成
 一般等价于int【通常情况下，int类型的变量通常是原子访问的，也可以认为 sig_atomic_t就是int类型的数据】*/
 sig_atomic_t ngx_reap;      //标记子进程状态变化[一般是子进程发来SIGCHLD信号表示退出]
-CSocket g_socket;
+CLogicSocket g_socket;
 ngx_c_threadpool  g_threadpool;      //线程池全局对象
 int g_stopEvent; //标志程序退出, 0:不退出 1:退出
 

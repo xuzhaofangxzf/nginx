@@ -55,6 +55,8 @@ bool CLogicSocket::initialize()
 ***********************************************************/
 void CLogicSocket::threadRecvProcFunc(char* pMsgBuf)
 {
+    ngx_log_stderr(0, "excute child!");
+
     LPSTRUC_MSG_HEADER pMsgHeader = (LPSTRUC_MSG_HEADER)pMsgBuf; //消息头
     LPCOMM_PKG_HEADER pPkgHeader = (LPCOMM_PKG_HEADER)(pMsgBuf + m_iLenMsgHeader);
     void *pPkgBody; //指向包体的指针
@@ -63,6 +65,7 @@ void CLogicSocket::threadRecvProcFunc(char* pMsgBuf)
     {
         if (pPkgHeader->crc32 != 0)
         {
+            ngx_log_stderr(0, "only package header but the crc is not 0!");
             return; //crc错,直接丢弃
         }
         pPkgBody = NULL;

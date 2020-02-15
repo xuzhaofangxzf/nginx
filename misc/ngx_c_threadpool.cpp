@@ -118,7 +118,7 @@ void * ngx_c_threadpool::ThreadFunc(void *threadData)
         //老师也在《c++入门到精通 c++ 98/11/14/17》里第六章第十三节谈过虚假唤醒，实际上是一个意思；
         //老师也在《c++入门到精通 c++ 98/11/14/17》里第六章第八节谈过条件变量、wait()、notify_one()、notify_all()，其实跟这里的pthread_cond_wait、pthread_cond_signal、pthread_cond_broadcast非常类似
         //pthread_cond_wait()函数，如果只有一条消息 唤醒了两个线程干活，那么其中有一个线程拿不到消息，那如果不用while写，就会出问题，所以被惊醒后必须再次用while拿消息，拿到才走下来；
-        while ((pThreadPoolObj->m_MsgRecvQueue.size() == 0) == NULL && m_shutdown == false)
+        while ((pThreadPoolObj->m_MsgRecvQueue.size() == 0) && m_shutdown == false)
         {
             ngx_log_stderr(err, "ThreadFunc: pthread_cond_wait before tid = %u", tid);
             /*
@@ -156,12 +156,10 @@ void * ngx_c_threadpool::ThreadFunc(void *threadData)
         }
         ++pThreadPoolObj->m_iRunningThreadNum;
         
+        ngx_log_stderr(0, "excute start: tid = %ui", tid);
         g_socket.threadRecvProcFunc(jobbuf);
         
         //先打印处理
-        
-        ngx_log_stderr(0, "excute start: tid = %ui", tid);
-        sleep(5);
         ngx_log_stderr(0, "excute end: tid = %ui", tid);
         Cmem.FreeMemory(jobbuf);
         --pThreadPoolObj->m_iRunningThreadNum;
@@ -270,6 +268,7 @@ void ngx_c_threadpool::inMsgRecvQueueAndSignal(char *buf)
     }
     m_MsgRecvQueue.push_back(buf);
     ++m_iRecvMsgQueueCount;
+    err = pthread_mutex_unlock(&m_pthreadMutex);
     if (err !=0 )
     {
         ngx_log_stderr(err, "ngx_c_threadpool::inMsgRecvQueueAndSignal pthread_mutex_unlock(&m_pthreadMutex) failed");

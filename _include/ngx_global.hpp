@@ -8,6 +8,7 @@
 
 #include "ngx_c_socket.hpp"
 #include "ngx_c_threadpool.hpp"
+#include "ngx_c_slogic.hpp"
 //类型定义--------------
 
 typedef struct 
@@ -43,7 +44,7 @@ extern pid_t        ngx_parent;
 extern int          ngx_process;
 extern sig_atomic_t ngx_reap;
 
-extern CSocket       g_socket;
+extern CLogicSocket       g_socket;
 extern ngx_c_threadpool g_threadpool;
 extern int g_stopEvent; //标志程序退出, 0:不退出 1:退出
 #endif

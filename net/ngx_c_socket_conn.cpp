@@ -290,18 +290,18 @@ void* CSocket::serverRecyConnectionThread(void *threadData)
             {
                 ngx_log_stderr(err, "CSocket::serverRecyConnectionThread pthread_mutex_lock failed, errno = %d", err);
             }
-            pos = pSockObj->m_recyConnectionList.begin();
             posEnd = pSockObj->m_recyConnectionList.end();
-            for (; pos != posEnd; pos++)
+            for (pos = pSockObj->m_recyConnectionList.begin(); pos != posEnd;)
             {
                 pConn = (*pos);
-                if ((pConn->inRecyTime + pSockObj->m_recyConnectionWaitTime) > currtime)
+                if (((*pos)->inRecyTime + pSockObj->m_recyConnectionWaitTime) > currtime)
                 {
+                    pos++;
                     continue; //没到释放时间
                 }
                 //到释放时间了,应该进行释放
                 /*==================code========================*/
-                if (pConn->iThrowSendCount > 0)
+                if ((*pos)->iThrowSendCount > 0)
                 {
                     ngx_log_stderr(0, "CSocket::serverRecyConnectionThread, iThrowSendCount greater than 0 when free Connection");
                 }
@@ -336,9 +336,10 @@ void* CSocket::serverRecyConnectionThread(void *threadData)
                     pConn = (*pos);
                     //开始释放
                     --pSockObj->m_totol_recyConnection_n;
-                    pos = pSockObj->m_recyConnectionList.erase(pos);
+                    //pos = pSockObj->m_recyConnectionList.erase(pos);
                     pSockObj->ngx_free_connection(pConn); //释放连接到空闲连接中去
                 }
+                pSockObj->m_recyConnectionList.clear();
                 err = pthread_mutex_unlock(&pSockObj->m_recyConnQueueMutex);
                 if (err != 0)
                 {

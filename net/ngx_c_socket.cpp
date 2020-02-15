@@ -11,7 +11,7 @@
 #include <errno.h>  //errno
 #include <fcntl.h>
 #include <iostream>
-
+#include <sys/time.h>
 #include "ngx_c_socket.hpp"
 #include "ngx_c_conf.hpp"
 #include "ngx_global.hpp"
@@ -30,7 +30,7 @@ CSocket::CSocket()
     m_epollHandle = -1; //epoll返回的句柄
     // m_pConnections = NULL; //连接池【连接数组】先给空
     // m_pFreeConnections = NULL; //连接池中的空闲连接
-    m_iLenPkg_Header = sizeof(COMM_PKG_HEADER);
+    m_iLenPkgHeader = sizeof(COMM_PKG_HEADER);
     m_iLenMsgHeader = sizeof(STRUC_MSG_HEADER);
     
     //多线程相关
@@ -40,7 +40,8 @@ CSocket::CSocket()
     m_totol_recyConnection_n = 0; //待释放连接队列大小
     m_cur_size = 0; //当前计时队列大小
     m_timer_value = 0; //当前计时队列头部的时间
-
+    //在线用户相关
+    m_onlineUserCount = 0; //在线用户数量统计
 
     return;
 }
@@ -133,11 +134,11 @@ bool CSocket::initialize_subproc()
         return false;
     }
     
-    if (m_ifKickTimeClkEnable == 1)
+    if (m_ifKickTimeEnable == 1)
     {
         ThreadItem *pTimeMonitor; //专门用来处理到期不发心跳包的用户,将其剔除线程
         m_threadVector.push_back(pTimeMonitor = new ThreadItem(this));
-        err = pthread_create(&pTimeMonitor->_Handle, NULL, serverTimerQueuemonitorThread, pTimeMonitor);
+        err = pthread_create(&pTimeMonitor->_Handle, NULL, serverTimerQueueMonitorThread, pTimeMonitor);
         if (err != 0)
         {
             ngx_log_stderr(err, "CSocekt::Initialize_subproc: pthread_create timeMonitor thread failed");
@@ -422,14 +423,21 @@ void CSocket::ngx_close_listening_sockets()
 void CSocket::readConf()
 {
     CConfig *pConfig = CConfig::getInstance();
-    m_worker_connections = pConfig->getIntDefault("worker_connections", m_worker_connections);
-    m_listenPortCount = pConfig->getIntDefault("ListenPortCount",m_listenPortCount);
-    m_recyConnectionWaitTime = pConfig->getIntDefault("Sock_RecyConnectionWaitTime", m_recyConnectionWaitTime);
+    m_worker_connections = pConfig->getIntDefault("worker_connections", m_worker_connections); //epoll连接的最大项数
+    m_listenPortCount = pConfig->getIntDefault("ListenPortCount",m_listenPortCount); //监听的端口数量
+    m_recyConnectionWaitTime = pConfig->getIntDefault("Sock_RecyConnectionWaitTime", m_recyConnectionWaitTime); //回收连接的缓冲时间
 
-    m_ifKickTimeClkEnable = pConfig->getIntDefault("Sock_WaitTimeEnable", 0);
-    m_iWaitTime = pConfig->getIntDefault("Sock_MaxWaitTime", m_iWaitTime);
+    m_ifKickTimeEnable = pConfig->getIntDefault("Sock_WaitTimeEnable", 0); //是否开启踢人时钟
+    m_iWaitTime = pConfig->getIntDefault("Sock_MaxWaitTime", m_iWaitTime); //心跳超时时长
     m_iWaitTime = (m_iWaitTime > 5)?m_iWaitTime:5;
+    
+    m_ifTimeOutKick = pConfig->getIntDefault("Sock_TimeOutKick", 0); //当事件达到Sock_MaxWaitTime后,是否需要剔除客户端
 
+#if 0
+    m_floodAkEnable = pConfig->getIntDefault("Sock_FloodAttackKickEnable", 0); //是否开启flood攻击检测
+    m_floodTimeInterval = pConfig->getIntDefault("Sock_FloodTimeInterval", 100); //表示每次收到数据包的事件间隔不能小于100ms
+    m_floodKickCount = pConfig->getIntDefault("Sock_FloodKickCounter", 10); //累计多少次小于100ms的指令,就剔除客户端
+#endif
     return;
 }
 
@@ -664,7 +672,7 @@ int CSocket::ngx_epoll_operate_events(int fd, //socket句柄
 
         return 1;
     }
-        //原来的理解中，绑定ptr这个事，只在EPOLL_CTL_ADD的时候做一次即可，但是发现EPOLL_CTL_MOD似乎会破坏掉.data.ptr，因此不管是EPOLL_CTL_ADD，还是EPOLL_CTL_MOD，都给进去
+    //原来的理解中，绑定ptr这个事，只在EPOLL_CTL_ADD的时候做一次即可，但是发现EPOLL_CTL_MOD似乎会破坏掉.data.ptr，因此不管是EPOLL_CTL_ADD，还是EPOLL_CTL_MOD，都给进去
     //找了下内核源码SYSCALL_DEFINE4(epoll_ctl, int, epfd, int, op, int, fd,		struct epoll_event __user *, event)，感觉真的会覆盖掉：
        //copy_from_user(&epds, event, sizeof(struct epoll_event)))，感觉这个内核处理这个事情太粗暴了
     ev.data.ptr = (void*)pConn;
@@ -770,11 +778,11 @@ int CSocket::ngx_epoll_process_events(int timer)
 
         //到这里都是正常事件了
         revents = m_events[i].events; //取出事件类型
-        if (revents & (EPOLLERR | EPOLLHUP)) //例如对方close掉套接字，这里会感应到【换句话说：如果发生了错误或者客户端断连】
+    /*  if (revents & (EPOLLERR | EPOLLHUP)) //例如对方close掉套接字，这里会感应到【换句话说：如果发生了错误或者客户端断连】
         {
             revents |= EPOLLIN | EPOLLOUT; //EPOLLIN:表示对应的连接上的数据可以读取（TCP链接的远端主动关闭连接，也相当于可读事件，因为本服务器小处理发送来的FIN包）
                                             //EPOLLOUT：表示对应的连接上可以写入数据发送【写准备好】
-        }
+        } */
 
         if (revents & EPOLLIN)
         {
@@ -857,7 +865,7 @@ void CSocket::msgSend(char *psendBuf)
 ***********************************************************/
 void CSocket::zdCloseSocketProc(lpngx_connection_t pConn)
 {
-    if (m_ifKickTimeClkEnable == 1)
+    if (m_ifKickTimeEnable == 1)
     {
         deletFromTimerQueue(pConn); //从事件队列中把连接删除
     }
@@ -925,111 +933,109 @@ void *CSocket::serverSendQueueThread(void *threadData)
            posEnd = pSocketObj->m_msgSendQueue.end();
            while (pos != posEnd)
            {
-            pMsgBuf = (*pos); //拿到的每个消息都是 消息头+包头+包体(但是不发送消息给客户端)
-            pMsgHeader = (LPSTRUC_MSG_HEADER)pMsgBuf;
-            pPkgHeader = (LPCOMM_PKG_HEADER)(pMsgBuf + pSocketObj->m_iLenMsgHeader); //指向包头
-            pConn = pMsgHeader->pConn;
-            //判断包是否过期,因为如果这个连接被回收,比如在ngx_close_connection,inRecyConnectQueue中都会自增iCurrsequence
-            if (pConn->iCurrsequence != pMsgHeader->iCurrsequence)
-            {
-                pos = pSocketObj->m_msgSendQueue.erase(pos);
-                Cmem.FreeMemory(pMsgBuf);
-                continue;
-            }
-
-            if (pConn->iThrowSendCount > 0)
-            {
-                //靠系统驱动来发消息,即通过epoll_wait来驱动
-                pos++;
-                continue;
-            }
-            //走到这里,可以发送消息,一些必须的信息记录,要发送的东西也要从发送队列清楚清除
-            pConn->pSendMemHeader = pMsgBuf; //发送后释放用的,因为是new出来的
-            pos = pSocketObj->m_msgSendQueue.erase(pos);
-            --pSocketObj->m_iSendMsgQueueCount;
-            pConn->pSendBuf = (char *)pPkgHeader; //要发送的数据的缓冲区指针,因为发送数据不一定全部能发送出去,要记录数据发送到了哪里,需要知道下次数据从哪里开始发送
-            pkgLenTmp = ntohs(pPkgHeader->pkgLen); //包头+包体长度,本机转网络序
-            pConn->iSendLen = pkgLenTmp;
-            /*
-            epoll水平触发发送数据的改进方案:
-            开始不把socket写事件添加到epoll中,当我们需要写数据的时候,直接调用write/send发送数据:
-            如果返回了EAGIN(发送缓冲区满了,要等待可写事件才能继续往缓冲区里写数据),此时再把写事件通知加入到epoll中.
-            此时,就变成了在epoll驱动下写数据,全部数据发送完毕后,再把写事件通知从epoll移除
-            优点:数据不多的时候,可以避免epoll写事件的频繁增加/删除,提高程序的执行效率
-            */
-            sendSize = pSocketObj->sendProc(pConn, pConn->pSendBuf, pConn->iSendLen);
-            if (sendSize > 0)
-            {
-                if (sendSize == pConn->iSendLen)
+                pMsgBuf = (*pos); //拿到的每个消息都是 消息头+包头+包体(但是不发送消息给客户端)
+                pMsgHeader = (LPSTRUC_MSG_HEADER)pMsgBuf;
+                pPkgHeader = (LPCOMM_PKG_HEADER)(pMsgBuf + pSocketObj->m_iLenMsgHeader); //指向包头
+                pConn = pMsgHeader->pConn;
+                //判断包是否过期,因为如果这个连接被回收,比如在ngx_close_connection,inRecyConnectQueue中都会自增iCurrsequence
+                if (pConn->iCurrsequence != pMsgHeader->iCurrsequence)
                 {
-                    //数据发送完毕了
+                    pos = pSocketObj->m_msgSendQueue.erase(pos);
+                    Cmem.FreeMemory(pMsgBuf);
+                    continue;
+                }
+
+                if (pConn->iThrowSendCount > 0)
+                {
+                    //靠系统驱动来发消息,即通过epoll_wait来驱动
+                    pos++;
+                    continue;
+                }
+                //走到这里,可以发送消息,一些必须的信息记录,要发送的东西也要从发送队列清除
+                pConn->pSendMemHeader = pMsgBuf; //发送后释放用的,因为是new出来的
+                pos = pSocketObj->m_msgSendQueue.erase(pos);
+                --pSocketObj->m_iSendMsgQueueCount;
+                pConn->pSendBuf = (char *)pPkgHeader; //要发送的数据的缓冲区指针,因为发送数据不一定全部能发送出去,要记录数据发送到了哪里,需要知道下次数据从哪里开始发送
+                pkgLenTmp = ntohs(pPkgHeader->pkgLen); //包头+包体长度,本机转网络序
+                pConn->iSendLen = pkgLenTmp;
+                /*
+                epoll水平触发发送数据的改进方案:
+                开始不把socket写事件添加到epoll中,当我们需要写数据的时候,直接调用write/send发送数据:
+                如果返回了EAGIN(发送缓冲区满了,要等待可写事件才能继续往缓冲区里写数据),此时再把写事件通知加入到epoll中.
+                此时,就变成了在epoll驱动下写数据,全部数据发送完毕后,再把写事件通知从epoll移除
+                优点:数据不多的时候,可以避免epoll写事件的频繁增加/删除,提高程序的执行效率
+                */
+                sendSize = pSocketObj->sendProc(pConn, pConn->pSendBuf, pConn->iSendLen);
+                if (sendSize > 0)
+                {
+                    if (sendSize == pConn->iSendLen)
+                    {
+                        //数据发送完毕了
+                        Cmem.FreeMemory(pConn->pSendMemHeader);
+                        pConn->pSendMemHeader = NULL;
+                        pConn->iThrowSendCount = 0;
+                    }
+                    else //没有全部发送完毕(EAGIN,)数据只发送了一部分,但是肯定是因为发送缓冲区满了
+                    {
+                        //发送到了哪里,剩余多少,记录下来
+                        pConn->pSendBuf += sendSize;
+                        pConn->iSendLen -= sendSize;
+                        //因为发送缓冲区满了,所以要增加到epoll可写事件中
+                        ++pConn->iThrowSendCount; //标记发送缓冲区满了,需要通过epoll事件来驱动消息的继续发送
+                        //投递此事件后,我们将依靠epoll调用ngx_write_request_handler()函数发送数据
+                        if (pSocketObj->ngx_epoll_operate_events(
+                                pConn->fd, //socket句柄
+                                EPOLL_CTL_MOD,
+                                EPOLLOUT, //可写事件
+                                0, //对于事件类型为增加的,EPOLL_CTL_MOD需要这个参数,0:增加,1:删除,2:完全覆盖
+                                pConn
+                        ) == -1)
+                        {
+                            ngx_log_stderr(err, "CSocket::serverSendQueueThread:ngx_epoll_operate_events failed");
+                        }
+                        
+                    }
+                    continue;
+                    
+                }
+                //走到这里,应该是有问题的
+                else if (sendSize == 0)
+                {
+                    //发送0个字节，首先因为我发送的内容不是0个字节的；
+                    //然后如果发送 缓冲区满则返回的应该是-1，而错误码应该是EAGAIN，所以我综合认为，这种情况我就把这个发送的包丢弃了【按对端关闭了socket处理】
+                    //这个打印下日志，我还真想观察观察是否真有这种现象发生
+                    //ngx_log_stderr(errno,"CSocekt::ServerSendQueueThread()中sendproc()居然返回0？"); //如果对方关闭连接出现send=0，那么这个日志可能会常出现，商用时就 应该干掉
+                    //然后这个包干掉，不发送了
+                    Cmem.FreeMemory(pConn->pSendMemHeader); //释放内存
+                    pConn->pSendMemHeader = NULL;
+                    pConn->iThrowSendCount = 0;
+                    continue;
+                }
+                else if (sendSize == -1)
+                {
+                    //发送缓冲区已经满了(一个字节都没发送出去,说明发送缓冲区当前正好是满的)
+                    ++pConn->iThrowSendCount; //标记发缓冲区满了,需要通过epoll事件来驱动消息的继续发送
+                    //投递此事件后,我们将依靠epoll驱动调用ngx_write_requese_handler函数发送数据
+                    if (pSocketObj->ngx_epoll_operate_events(
+                        pConn->fd,
+                        EPOLL_CTL_MOD,
+                        EPOLLOUT,
+                        0,
+                        pConn
+                    ) == -1)
+                    {
+                        ngx_log_stderr(err, "CSocket::serverSendQueueThread:ngx_epoll_operate_events 2 failed");
+                    }
+                    continue;
+                }
+                else
+                {
+                    //走到这里,应该是就是返回值是-2了,一般认为对端断开连接,等待recv来做判断socket以及回收资源
                     Cmem.FreeMemory(pConn->pSendMemHeader);
                     pConn->pSendMemHeader = NULL;
                     pConn->iThrowSendCount = 0;
+                    continue;
                 }
-                else //没有全部发送完毕(EAGIN,)数据只发送了一部分,但是肯定是因为发送缓冲区满了
-                {
-                    //发送到了哪里,剩余多少,记录下来
-                    pConn->pSendBuf += sendSize;
-                    pConn->iSendLen -= sendSize;
-                    //因为发送缓冲区满了,所以要增加到epoll可写事件中
-                    ++pConn->iThrowSendCount; //标记发送缓冲区满了,需要通过epoll事件来驱动消息的继续发送
-                    //投递此事件后,我们将依靠epoll调用ngx_write_request_handler()函数发送数据
-                    if (pSocketObj->ngx_epoll_operate_events(
-                            pConn->fd, //socket句柄
-                            EPOLL_CTL_MOD,
-                            EPOLLOUT, //可写事件
-                            0, //对于事件类型为增加的,EPOLL_CTL_MOD需要这个参数,0:增加,1:删除,2:完全覆盖
-                            pConn
-                    ) == -1)
-                    {
-                        ngx_log_stderr(err, "CSocket::serverSendQueueThread:ngx_epoll_operate_events failed");
-                    }
-                    
-                }
-                continue;
-                
-            }
-            //走到这里,应该是有问题的
-            else if (sendSize == 0)
-            {
-                //发送0个字节，首先因为我发送的内容不是0个字节的；
-                //然后如果发送 缓冲区满则返回的应该是-1，而错误码应该是EAGAIN，所以我综合认为，这种情况我就把这个发送的包丢弃了【按对端关闭了socket处理】
-                //这个打印下日志，我还真想观察观察是否真有这种现象发生
-                //ngx_log_stderr(errno,"CSocekt::ServerSendQueueThread()中sendproc()居然返回0？"); //如果对方关闭连接出现send=0，那么这个日志可能会常出现，商用时就 应该干掉
-                //然后这个包干掉，不发送了
-                Cmem.FreeMemory(pConn->pSendMemHeader); //释放内存
-                pConn->pSendMemHeader = NULL;
-                pConn->iThrowSendCount = 0;
-                continue;
-            }
-            else if (sendSize == -1)
-            {
-                //发送缓冲区已经满了(一个字节都没发送出去,说明发送缓冲区当前正好是满的)
-                ++pConn->iThrowSendCount; //标记发缓冲区满了,需要通过epoll事件来驱动消息的继续发送
-                //投递此事件后,我们将依靠epoll驱动调用ngx_write_requese_handler函数发送数据
-                if (pSocketObj->ngx_epoll_operate_events(
-                    pConn->fd,
-                    EPOLL_CTL_MOD,
-                    EPOLLOUT,
-                    0,
-                    pConn
-                ) == -1)
-                {
-                    ngx_log_stderr(err, "CSocket::serverSendQueueThread:ngx_epoll_operate_events 2 failed");
-                }
-                continue;
-            }
-            else
-            {
-                //走到这里,应该是就是返回值是-2了,一般认为对端断开连接,等待recv来做判断socket以及回收资源
-                Cmem.FreeMemory(pConn->pSendMemHeader);
-                pConn->pSendMemHeader = NULL;
-                pConn->iThrowSendCount = 0;
-                continue;
-            }
-            
-            
            }//end while(pos != posEnd)
 
            err = pthread_mutex_unlock(&pSocketObj->m_sendMsgQueueMutex);
@@ -1049,6 +1055,7 @@ bool CSocket::testFlood(lpngx_connection_t pConn)
     struct timeval struCurTime; //当前时间结构
     uint64_t iCurTime; //当前时间(单位:ms)
     bool reco = false;
+    gettimeofday(&struCurTime, NULL);
     iCurTime = (struCurTime.tv_sec * 1000 + struCurTime.tv_usec / 1000); //转化为ms
     if (iCurTime - pConn->floodKickLastTime < m_floodTimeInterval)
     {

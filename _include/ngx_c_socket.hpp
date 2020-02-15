@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include <semaphore.h> //信号量
 #include <map>
+#include <atomic>
 
 #include "ngx_comm.hpp"
 #include "ngx_c_memory.hpp"
@@ -255,7 +256,7 @@ private:
     pthread_mutex_t m_sendMsgQueueMutex; //发消息队列互斥量
     sem_t m_semEventSendQueue; //处理发消息线程相关的信号量
     //时间相关
-    int m_ifKickTimeCount; //是否开启剔除时钟,1:开启,0:不开启
+    int m_ifKickTimeEnable; //是否开启剔除时钟,1:开启,0:不开启
     pthread_mutex_t m_timeQueueMutex; //和时间队列有关的互斥量
     std::multimap<time_t, LPSTRUC_MSG_HEADER> m_timerQueueMap; //时间队列
     size_t m_cur_size; //时间队列的尺寸
