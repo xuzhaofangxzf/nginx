@@ -141,7 +141,7 @@ public:
     //char * outMsgRecvQueue(); //将一个消息出队列
     virtual void threadRecvProcFunc(char* pMsgBuf); //处理客户端请求，虚函数，因为将来可以考虑自己来写子类继承本类
     //心跳包检测时间到，该去检测心跳包是否超时的事宜，本函数只是把内存释放，子类应该重新事先该函数以实现具体的判断动作
-    virtual void procPingTimeoutCheking(LPSTRUC_MSG_HEADER tmpmsg, time_t curTime);
+    virtual void procPingTimeoutChecking(LPSTRUC_MSG_HEADER tmpmsg, time_t curTime);
 
 protected:
     //和数据发送相关
@@ -184,15 +184,15 @@ private:
     void inRecyConnectionQueue(lpngx_connection_t pConn); //将要回收的连接放到延迟回收的队列中来
     //和时间先关的函数
     void addToTimeQueue(lpngx_connection_t pConn); //设置剔除时钟(向map表中增加内容)
-    LPSTRUC_MSG_HEADER removeFirstTimer(); //从m_timeQueuemap移除最早的时间，并把最早这个时间所在的项的值所对应的指针 返回，调用者负责互斥，所以本函数不用互斥，
+   // LPSTRUC_MSG_HEADER removeFirstTimer(); //从m_timeQueuemap移除最早的时间，并把最早这个时间所在的项的值所对应的指针 返回，调用者负责互斥，所以本函数不用互斥，
     time_t getEarliestTime(); //从multimap中取得最早的时间
-    LPSTRUC_MSG_HEADER getOverTimeTimer(time_t curTime); //根据当前的事件,从m_timeQueuemap找到比这个事件更老(更早)的1个节点
+    void getOverTimeTimer(time_t curTime); //根据当前的事件,从m_timeQueuemap找到比这个事件更老(更早)的1个节点
     void deletFromTimerQueue(lpngx_connection_t pConn); //把指定用户TCP连接从timer表中删除
     void clearAllFromTimerQueue(); //清理事件队列中所有的内容
 
-//和网络安全相关
-bool testFlood(lpngx_connection_t pConn);
-//线程先关函数
+    //和网络安全相关
+    bool testFlood(lpngx_connection_t pConn);
+    //线程先关函数
 
     static void *serverSendQueueThread(void *threadData); //专门用来发送数据的线程
     static void *serverRecyConnectionThread(void *threadData); //专门用来回收连接的线程
@@ -203,7 +203,7 @@ protected:
     size_t m_iLenPkgHeader; //包头长度sizeof(COMM_PKG_HEADER)
     size_t m_iLenMsgHeader; //消息头长度sizeof(STRUC_MSG_HEADER)
     //和时间相关
-    int m_ifTimeOutKick; //当时间到达Sock_MaxWaitTime指定的时间时，直接把客户端剔除，只有当sock_waitTimeEnable = 1时才有效
+    //int m_ifTimeOutKick; //当时间到达Sock_MaxWaitTime指定的时间时，直接把客户端剔除，只有当sock_waitTimeEnable = 1时才有效
     int m_iWaitTime; //多少秒检测一次是否心跳超时,只有当sock_waitTimeEnable = 1时才有效
 
 private:
@@ -261,7 +261,7 @@ private:
     std::multimap<time_t, LPSTRUC_MSG_HEADER> m_timerQueueMap; //时间队列
     size_t m_cur_size; //时间队列的尺寸
     time_t m_timer_value; //当前计时队列头部的时间值
-    
+    std::list<LPSTRUC_MSG_HEADER> m_timeoutList; //保存已经超时不发心跳包的连接
     //消息队列
     std::list<char *> m_MsgRecvQueue; //接收数据消息队列
     int m_iRecvMsgQueueCount; //接收消息队列大小

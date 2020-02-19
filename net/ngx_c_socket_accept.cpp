@@ -235,12 +235,13 @@ void CSocket::ngx_event_accept(lpngx_connection_t oldc)
 void CSocket::ngx_close_connection(lpngx_connection_t c)
 {
     ngx_free_connection(c);
-    if (close(c->fd) == -1)
+    if (c->fd != -1)
     {
-        ngx_log_error_core(NGX_LOG_ALERT, errno, "CSockt::ngx_close_accepted_connection: close fd = %d failed", c->fd);
+        if (close(c->fd) == -1)
+        {
+            ngx_log_error_core(NGX_LOG_ALERT, errno, "CSockt::ngx_close_accepted_connection: close fd = %d failed", c->fd);
+        }
+        c->fd = -1;
     }
-    c->fd = -1;
-    ngx_free_connection(c);
     return;
-    
 }

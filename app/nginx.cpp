@@ -42,7 +42,7 @@ int main(int argc, char *const *argv)
     CConfig *p_config = CConfig::getInstance();
     if (p_config->loadConf("../nginx.conf") == false)
     {
-        printf("load config file failed!, exit!");
+        printf("load config file failed!, exit!\n");
         freeresource();
         exit(1);
     }

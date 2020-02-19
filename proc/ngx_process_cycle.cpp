@@ -209,6 +209,12 @@ static void ngx_worker_process_init(int inum)
         ngx_log_stderr(0,"create threads pool failed!");
         exit(-2);
     }
+    if (!g_socket.initialize_subproc())
+    {
+        ngx_log_stderr(0, "init subproc failed!");
+        exit(-2);
+    }
+    
     sleep(1);
     //初始化epoll
     g_socket.ngx_epoll_init();

@@ -431,7 +431,7 @@ void CSocket::readConf()
     m_iWaitTime = pConfig->getIntDefault("Sock_MaxWaitTime", m_iWaitTime); //心跳超时时长
     m_iWaitTime = (m_iWaitTime > 5)?m_iWaitTime:5;
     
-    m_ifTimeOutKick = pConfig->getIntDefault("Sock_TimeOutKick", 0); //当事件达到Sock_MaxWaitTime后,是否需要剔除客户端
+    //m_ifTimeOutKick = pConfig->getIntDefault("Sock_TimeOutKick", 0); //当事件达到Sock_MaxWaitTime后,是否需要剔除客户端
 
 #if 0
     m_floodAkEnable = pConfig->getIntDefault("Sock_FloodAttackKickEnable", 0); //是否开启flood攻击检测
@@ -743,13 +743,13 @@ int CSocket::ngx_epoll_process_events(int timer)
     
     //正常收到事件
     lpngx_connection_t c;
-    uintptr_t instance;
+    //uintptr_t instance;
     uint32_t revents;
     for (int i = 0; i < events; i++) //events为返回的实际事件的数量
     {
         c = (lpngx_connection_t)(m_events[i].data.ptr); //ngx_epll_add_event()给进去的，这里再取回来
-        instance = (uintptr_t) c & 1; //将地址的最后一位取出来
-        c = (lpngx_connection_t)((uintptr_t)c & (uintptr_t) ~1); //去掉最后一位，得到C的地址
+        // instance = (uintptr_t) c & 1; //将地址的最后一位取出来
+        // c = (lpngx_connection_t)((uintptr_t)c & (uintptr_t) ~1); //去掉最后一位，得到C的地址
         
         //一个套接字，当关联一个连接池中的连接(对象)时，套接字是要赋值给c->fd
         //关闭连接时，在函数ngx_close_accepted_connection会把c->fd置为-1，
@@ -761,7 +761,7 @@ int CSocket::ngx_epoll_process_events(int timer)
             ngx_log_error_core(NGX_LOG_DEBUG, 0, "CSocket::ngx_epoll_process_events:stale event:%p", c);
             continue;
         }
-
+    #if 0
         if (c->instance != instance)
         {
             /* 假如epoll_wait一次放回3个事件，第一个与第三个对应的是同一个连接的数据写入事件(即可读事件)，第二个是建立连接的新事件
@@ -775,7 +775,7 @@ int CSocket::ngx_epoll_process_events(int timer)
             ngx_log_error_core(NGX_LOG_DEBUG, 0, "CSocket::ngx_epoll_process_events:stale event:%p", c);
             continue;
         }
-
+    #endif
         //到这里都是正常事件了
         revents = m_events[i].events; //取出事件类型
     /*  if (revents & (EPOLLERR | EPOLLHUP)) //例如对方close掉套接字，这里会感应到【换句话说：如果发生了错误或者客户端断连】
@@ -790,7 +790,16 @@ int CSocket::ngx_epoll_process_events(int timer)
             //注意括号的运用来正确设置优先级，防止编译出错；【如果是个新客户连入
             //如果新连接进入，这里执行的应该是CSocekt::ngx_event_accept(c)】            
             //如果是已经连入，发送数据到这里，则这里执行的应该是 CSocekt::ngx_wait_request_handler
-            (this->*(c->rhandler))(c);
+            if (revents & EPOLLRDHUP)
+            {
+                ngx_log_stderr(0, "the client closed!"); //经过测验,对端关闭的时候,在LT模式下会一直触发该打印,所进行某些处理(改成ET模式?)
+                zdCloseSocketProc(c);
+            }
+            else
+            {
+                (this->*(c->rhandler))(c);
+            }
+            
 
         }
         if (revents & EPOLLOUT)
@@ -836,6 +845,7 @@ void CSocket::msgSend(char *psendBuf)
     CMutexLock lock(&m_sendMsgQueueMutex); 
     m_msgSendQueue.push_back(psendBuf);
     ++m_iSendMsgQueueCount;
+    ngx_log_stderr(0, "msgSend: push an message to m_msgSendQueue success!");
     /*
         int sem_post(sem_t * sem);
         int sem_wait(sem_t * sem);
@@ -847,7 +857,7 @@ void CSocket::msgSend(char *psendBuf)
         那么当信号量被其他线程增加"1"时,等待线程中只有一个能够对信号量做减法并继续执行,另一个线程还将处于阻塞等待状态.
 
     */
-    //将信号量的值+1,这样其他卡在sem_wait的就可以走下去
+    //将信号量的值+1,这样其他卡在sem_wait的就可以走下去,先执行玩完这个函数,才去执行sem_wait
     if (sem_post(&m_semEventSendQueue) == -1)
     {
         ngx_log_stderr(0, "CSocket::msgSend: sem_post failed");
@@ -922,6 +932,7 @@ void *CSocket::serverSendQueueThread(void *threadData)
        {
            break;
        }
+       ngx_log_stderr(0, "serverSendQueueThread: senddata before");
        if (pSocketObj->m_iSendMsgQueueCount > 0)
        {
            err = pthread_mutex_lock(&pSocketObj->m_sendMsgQueueMutex);
@@ -970,6 +981,7 @@ void *CSocket::serverSendQueueThread(void *threadData)
                 {
                     if (sendSize == pConn->iSendLen)
                     {
+                        ngx_log_stderr(0, "Msg Send Over!");
                         //数据发送完毕了
                         Cmem.FreeMemory(pConn->pSendMemHeader);
                         pConn->pSendMemHeader = NULL;
@@ -993,7 +1005,7 @@ void *CSocket::serverSendQueueThread(void *threadData)
                         {
                             ngx_log_stderr(err, "CSocket::serverSendQueueThread:ngx_epoll_operate_events failed");
                         }
-                        
+                        ngx_log_stderr(errno,"CSocekt::ServerSendQueueThread()中数据没发送完毕【发送缓冲区满】，整个要发送%d，实际发送了%d。",pConn->iSendLen,sendSize);
                     }
                     continue;
                     
@@ -1031,6 +1043,7 @@ void *CSocket::serverSendQueueThread(void *threadData)
                 else
                 {
                     //走到这里,应该是就是返回值是-2了,一般认为对端断开连接,等待recv来做判断socket以及回收资源
+                    ngx_log_stderr(0, "CSocket::serverSendQueueThread: may be client closed");
                     Cmem.FreeMemory(pConn->pSendMemHeader);
                     pConn->pSendMemHeader = NULL;
                     pConn->iThrowSendCount = 0;

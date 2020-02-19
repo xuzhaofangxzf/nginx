@@ -50,6 +50,9 @@ void * CMemory::AllocMemory(int memCount, bool ifMemset)
 void CMemory::FreeMemory(void * pMem)
 {
     //delete [] point;  //这么删除编译会出现警告：warning: deleting ‘void*’ is undefined [-Wdelete-incomplete]
-
-    delete[] ((char*)pMem); //new的时候是char *，这里弄回char *，以免出警告
+    if (pMem != NULL)
+    {
+        delete[] ((char*)pMem); //new的时候是char *，这里弄回char *，以免出警告
+        pMem = NULL;
+    }
 }

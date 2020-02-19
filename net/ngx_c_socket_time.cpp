@@ -41,6 +41,7 @@ time_t CSocket::getEarliestTime()
     pos = m_timerQueueMap.begin();
     return pos->first;
 }
+#if 0
 /**********************************************************
  * 函数名称: CSocket::removeFirstTimer
  * 函数描述: 从m_timeQueuemap移除最早的时间，并把最早这个时间所在的项的值所对应的指针返回，
@@ -65,38 +66,53 @@ LPSTRUC_MSG_HEADER CSocket::removeFirstTimer()
     return pTmp;
     
 }
+#endif
 /**********************************************************
  * 函数名称: CSocket::getOverTimeTimer
- * 函数描述: 根据当前的时间,从m_timeQueuemap找到比这个时间更老(更早)的1个节点，也就是超时的节点
+ * 函数描述: 将超时的节点取出来放入到队列中,以便后续处理
  *          调用者负责互斥，所以本函数不用互斥，
  * 函数参数:
  *      空
  * 返回值:
- *    LPSTRUC_MSG_HEADER: 时间队列中最早的元素中对应的消息指针
+ *    void
 ***********************************************************/
-LPSTRUC_MSG_HEADER CSocket::getOverTimeTimer(time_t curTime)
+void CSocket::getOverTimeTimer(time_t curTime)
 {
-    if (m_cur_size <= 0)
+    if (m_cur_size <= 0 || m_timerQueueMap.empty())
     {
-        return NULL;
+        return;
     }
-    LPSTRUC_MSG_HEADER pTmp;
+#if 0
     time_t earliestTime = getEarliestTime();
     if (earliestTime <= curTime)
     {
         if (m_ifTimeOutKick == 1)
         {
-            pTmp = removeFirstTimer(); //把最早的节点从时间队列中删除，并把元素中的第二项取出来
+            pTmp = m_timerQueueMap.begin()->second; //把最早的节点从时间队列中删除，并把元素中的第二项取出来
+            // if (m_cur_size > 0)
+            // {
+            //     m_timer_value = getEarliestTime();
+            // }
+            return pTmp;
         }
         // //不要求超时就剔除，什么都不需要做，节点的时间也不需要更新，反正已经超时了，更新也没有意义
         // time_t newInQueueTime = curTime + m_iWaitTime;
-        if (m_cur_size > 0)
-        {
-            m_timer_value = getEarliestTime();
-        }
-        return pTmp;
     }
-    return NULL;
+#endif
+    std::multimap<time_t, LPSTRUC_MSG_HEADER>::iterator pos;
+    for (pos = m_timerQueueMap.begin(); pos != m_timerQueueMap.end(); pos++)
+    {
+        if((curTime - pos->second->pConn->lastPingTime) > (m_iWaitTime * 3 + 10))
+        {
+            m_timeoutList.push_back(pos->second);
+        }
+        else
+        {
+            break; //后面的都不会超时,后面的就不用判断了
+        }
+        
+    }
+    return;
 }
 /**********************************************************
  * 函数名称: CSocket::getOverTimeTimer
@@ -176,41 +192,49 @@ void * CSocket::serverTimerQueueMonitorThread(void *threadData)
             curTime = time(NULL);
             if (absoluteTime < curTime)
             {
-                std::list<LPSTRUC_MSG_HEADER> m_lsIdleList; //保存要处理的内容
+
                 LPSTRUC_MSG_HEADER result;
                 err = pthread_mutex_lock(&pSocketObj->m_timeQueueMutex);
                 if (err != 0)
                 {
                     ngx_log_stderr(err, "CSocket::serverTimerQueueMonitorThread: pthread_mutex_lock failed");
                 }
+#if 0
                 while ((result = pSocketObj->getOverTimeTimer(curTime)) != NULL)
                 {
-                    m_lsIdleList.push_back(result); //把需要处理的超时链接放入队列
+                    pSocketObj->m_timeoutList.push_back(result); //把需要处理的超时链接放入队列
                 }
+#endif
+                pSocketObj->getOverTimeTimer(curTime);
                 err = pthread_mutex_unlock(&pSocketObj->m_timeQueueMutex);
                 if (err != 0)
                 {
                     ngx_log_stderr(err, "CSocket::serverTimerQueueMonitorThread: pthread_mutex_unlock failed");
                 }
                 LPSTRUC_MSG_HEADER tmpMsg;
-                while (!m_lsIdleList.empty())
+                while (!pSocketObj->m_timeoutList.empty())
                 {
-                    tmpMsg = m_lsIdleList.front();
-                    m_lsIdleList.pop_front();
-                    pSocketObj->procPingTimeoutCheking(tmpMsg, curTime); //这里需要检查心跳超时问题
+                    ngx_log_stderr(0, "not empty!");
+                    tmpMsg = pSocketObj->m_timeoutList.front();
+                    pSocketObj->m_timeoutList.pop_front();
+                    pSocketObj->procPingTimeoutChecking(tmpMsg, curTime);
+                   
                 }
                 
             }
             
         }
+
+        //usleep(500 * 1000); //休息500ms
+        sleep(2);
     }
-    usleep(500 * 1000); //休息500ms
     
     return (void *)0;
 }
 
-void CSocket::procPingTimeoutCheking(LPSTRUC_MSG_HEADER tmpmsg, time_t curTime)
+void CSocket::procPingTimeoutChecking(LPSTRUC_MSG_HEADER tmpmsg, time_t curTime)
 {
+    ngx_log_stderr(0, "excute father procPingTimeoutChecking");
     CMemory &Cmem = CMemory::GetMemory();
     Cmem.FreeMemory(tmpmsg);
     return;

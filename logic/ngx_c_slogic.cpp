@@ -155,11 +155,13 @@ bool CLogicSocket::_handleRegister(lpngx_connection_t pConn, LPSTRUC_MSG_HEADER 
     //(1)判断包体的合法性
     if (pPkgBody == NULL) //具体看客户端服务器约定，如果约定这个命令[msgCode]必须带包体，那么如果不带包体，就认为是恶意包，直接不处理
     {
+        ngx_log_stderr(0, "_HandleRegister: Package body is null!");
         return false;
     }
     int iRecvLen = sizeof(STRUCT_REGISTER);
     if (iRecvLen != iBodyLength)
     {
+        ngx_log_stderr(0, "_HandleRegister:Package body is not register length!");
         return false;
     }
     /*
@@ -183,6 +185,7 @@ bool CLogicSocket::_handleRegister(lpngx_connection_t pConn, LPSTRUC_MSG_HEADER 
    CCRC32 *pCRC32 = CCRC32::GetInstance();
    int iSendLen = sizeof(STRUCT_REGISTER);
    //(a)分配内存
+   //int iSendLen2 = 60000;
    char *pSendBuf = (char *)Cmem.AllocMemory(m_iLenMsgHeader + m_iLenPkgHeader + iSendLen, false);
    //(b)填充消息头
    memcpy(pSendBuf, pMsgHeader, m_iLenMsgHeader);
@@ -251,32 +254,45 @@ bool CLogicSocket::_handlePing(lpngx_connection_t pConn, LPSTRUC_MSG_HEADER pMsg
  *      char *pPkgBody
  *      unsigned short iBodyLength
  * 返回值:
- *    bool
+ *    bool 
 ***********************************************************/
 void CLogicSocket::procPingTimeoutChecking(LPSTRUC_MSG_HEADER tmpMsg, time_t curTime)
 {
+    ngx_log_stderr(0, "procPingTimeoutChecking: excute child");
+
     CMemory &Cmem = CMemory::GetMemory();
     //连接没有断开
     if (tmpMsg->iCurrsequence ==  tmpMsg->pConn->iCurrsequence)
     {
+        ngx_log_stderr(0, "the client not closed");
         lpngx_connection_t pConn = tmpMsg->pConn;
-        if (m_ifTimeOutKick == 1)
-        {
-            zdCloseSocketProc(pConn);
-        }
+        #if 0
+        // if (m_ifTimeOutKick == 1)
+        // {
+        //     zdCloseSocketProc(pConn);
+        // }
         //超时剔除的判断标准:每次检查的时间间隔*3，超过这个时间没发送心跳包
-        else if((curTime - pConn->lastPingTime) > (m_iWaitTime * 3 + 10))
+        ngx_log_stderr(0, "curTime(%d), lastpingtime(%d), distance = %d", curTime, pConn->lastPingTime, curTime - pConn->lastPingTime);
+        if((curTime - pConn->lastPingTime) > (m_iWaitTime * 3 + 10))
         {
+            ngx_log_stderr(0, "procPingTimeoutChecking:timeout close the client");
             //如果此时该用户正好断线，切这个socket文件描述符正好立即被后续的连接复用，此时可能会无端关闭正常的socket
             //这种情况也直接关闭连接
             zdCloseSocketProc(pConn);
+            Cmem.FreeMemory(tmpMsg); //tmpMsg是new出来的,所以需要释放
+            return;
         }
-        Cmem.FreeMemory(tmpMsg);
+        #endif
+        ngx_log_stderr(0, "procPingTimeoutChecking:timeout close the client");
+        //这种情况也直接关闭连接
+        zdCloseSocketProc(pConn);
+        //Cmem.FreeMemory(tmpMsg); //tmpMsg是new出来的,所以需要释放
     }
     else
     {
-        //连接已经断了
-        Cmem.FreeMemory(tmpMsg);
+        //连接已经断了,可能是客户端关闭了连接,在epoll事件中应该能收到消息
+        zdCloseSocketProc(tmpMsg->pConn);
+        return;
     }
     return;
     

@@ -26,6 +26,7 @@ bool CConfig::loadConf(const char *pconfName)
     fp = fopen(pconfName, "r");
     if (fp == NULL)
     {
+        printf("loadCond: input name is null\n");
         return false;
     }
 
