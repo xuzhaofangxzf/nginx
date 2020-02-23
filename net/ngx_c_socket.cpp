@@ -276,7 +276,14 @@ bool CSocket::ngx_open_listening_sockets()
         int reuseaddr = 1;   //1:打开对应的设置选项
         if (setsockopt(aSock[i], SOL_SOCKET, SO_REUSEADDR, (const void *)&reuseaddr, sizeof(reuseaddr)) == -1)
         {
-            ngx_log_stderr(errno, "CSocket::ngx_open_listening_sockets() setsockopt failed! listen number = %d", i);
+            ngx_log_stderr(errno, "CSocket::ngx_open_listening_sockets() setsockopt reuseaddr failed! listen number = %d", i);
+            
+            break;
+        }
+        int reuseport = 1;
+        if (setsockopt(aSock[i], SOL_SOCKET, SO_REUSEPORT, (const void *)&reuseport, sizeof(reuseport)) == -1)
+        {
+            ngx_log_stderr(errno, "CSocket::ngx_open_listening_sockets() setsockopt reuseport failed! listen number = %d", i);
             
             break;
         }

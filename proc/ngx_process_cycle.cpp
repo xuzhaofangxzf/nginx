@@ -216,6 +216,13 @@ static void ngx_worker_process_init(int inum)
     }
     
     sleep(1);
+    //(5)socket初始化,为了测试惊群问题,需要将socket初始化放入子进程中执行,看看是否能解决
+    if (!g_socket.Initialize())
+    {
+        ngx_log_stderr(0, "socket init failed");
+        freeresource();
+        exit(1);
+    }
     //初始化epoll
     g_socket.ngx_epoll_init();
     return;

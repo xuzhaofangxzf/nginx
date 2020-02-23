@@ -26,6 +26,8 @@ typedef struct
 
 }ngx_log_t;
 
+//外部函数声明
+extern void freeresource();
 
 
 //外部全局变量的声明

@@ -1,7 +1,7 @@
 #include "nginx.hpp"
 
 //本文件用的函数声明
-static void freeresource();
+//static void freeresource();
 int main(int argc, char *const *argv)
 {
     /*（1）一些全局变量的初始化等*/
@@ -54,6 +54,8 @@ int main(int argc, char *const *argv)
         freeresource();
         exit(1);
     }
+    #if 0
+    //(5)socket初始化,为了测试惊群问题,需要将socket初始化放入子进程中执行,看看是否能解决
     if (!g_socket.Initialize())
     {
         ngx_log_stderr(0, "socket init failed");
@@ -61,7 +63,7 @@ int main(int argc, char *const *argv)
         freeresource();
         return exitcode;
     }
-    
+    #endif
     //（5）创建守护进程
     if (p_config->getIntDefault("Daemon", 0) == 1)
     {
@@ -107,7 +109,7 @@ int main(int argc, char *const *argv)
 
 
 
-static void freeresource()
+void freeresource()
 {
     //(1)对于因为设置可执行程序标题导致的环境变量分配的内存，我们应该释放
     if(gp_envmen)
