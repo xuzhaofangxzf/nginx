@@ -11,6 +11,7 @@
 #include "ngx_func.hpp"
 #include "ngx_macro.hpp"
 #include "ngx_c_conf.hpp"
+#include "ngx_affinity.hpp"
 //#include "ngx_string.hpp"
 
 static u_char  master_process[] = "master process";
@@ -137,6 +138,8 @@ static void ngx_start_worker_processes(int threadnums)
 */
 static int ngx_spawn_process(int inum, const char *pprocname)
 {
+    CConfig *p_config = CConfig::getInstance();
+    int isSetaffinity = p_config->getIntDefault("Setaffinity", 1);
     pid_t pid;
     pid = fork();
     switch (pid)
@@ -149,6 +152,11 @@ static int ngx_spawn_process(int inum, const char *pprocname)
         ngx_parent = ngx_pid;     //因为是子进程了，所有原来的pid变成了父pid
         ngx_pid = getpid();       //重新获取pid，即本子进程的pid
         ngx_worker_process_cycle(inum, pprocname);
+        if (isSetaffinity == 1)
+        {
+            ngx_setaffinity(ngx_pid, inum); //将进程绑定到对应的处理器，要保证inum小于处理器个数
+        }
+        
     
     default: //这个应该是父进程分支，直接break;，流程往switch之后走
         break;
