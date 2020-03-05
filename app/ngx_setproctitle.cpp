@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <unistd.h> //environ
 #include <string.h>
-
+/*因为environ是一个全局的外部变量，所以切记使用前要用extern关键字进行声明，然后在使用。
+unistd.h头文件中声明了这个变量，所以也可以将unist.h进行include，这个时候就不用再对environ进行extern声明了（应为unistd.h中已经声明了）
+*/
 #include "ngx_global.hpp"
 
 //设置可执行程序标题相关函数：分配内存，并且把环境变量拷贝到新内存中来
@@ -24,8 +26,11 @@ void ngxInitSetProcTitle()
     for (int i = 0; environ[i] != NULL; i++)
     {
         size_t size = strlen(environ[i]) + 1;
+        strncpy(ptmp, size, environ[i]);
+        #if 0
         strcpy(ptmp, environ[i]);
-        environ[i] = ptmp;
+        environ[i] = ptmp; //这行代码可以删除?
+        #endif
         ptmp += size;
     }
     return;
@@ -37,28 +42,23 @@ void ngxInitSetProcTitle()
 void ngxSetProcTitle(const char* title)
 {
     size_t titlelen = strlen(title) + 1;
-    //计算总的原始argv那块内存的长度【包括各种参数】
-    size_t e_environlen = 0;    //e表示局部变量
-    for (int i = 0; g_os_argv[i] != NULL; i++)
-    {
-        e_environlen += strlen(g_os_argv[i]) + 1;
+    //计算总的内存长度
 
-    }
-    size_t totallen = e_environlen + g_environlen; //argv and environ length summary
+    size_t totallen = g_envneedmem + g_argvneedmem; //argv and environ length summary
     if (totallen < titlelen)
     {
         printf("the title of the process is too long, there is no space enough to store it!\n");
         return;
     
     }
-
+    //(3)设置后续的命令行参数为空，表示只有argv[]中只有一个元素了，这是好习惯；防止后续argv被滥用，因为很多判断是用argv[] == NULL来做结束标记判断的;
     g_os_argv[1] = NULL;
     
-    char* ptmp = g_os_argv[0];
-    strcpy(ptmp, title);
+    char* ptmp = g_os_argv[0]; //指向开始的位置
+    strncpy(ptmp, titlelen, title);
     ptmp += titlelen;
     
-    size_t leftstorage = totallen - titlelen;
+    size_t leftstorage = totallen - titlelen; //把剩下的内存清零，不然有可能会显示乱码
     memset(ptmp, 0, leftstorage);
     return;
 }
