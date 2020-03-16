@@ -8,6 +8,7 @@
 #include <time.h>      //localtime_r
 #include <fcntl.h>     //open
 #include <errno.h>     //errno
+#include <sys/stat.h>  //stat
 
 #include "ngx_global.hpp"
 #include "ngx_func.hpp"
@@ -76,6 +77,7 @@ void ngx_log_stderr(int err, const char *fmt, ...)
 //buf：是个内存，要往这里保存数据
 //last：放的数据不要超过这里
 //err：错误编号，我们是要取得这个错误编号对应的错误字符串，保存到buffer中
+//函数描述：将错误码对应的解释添加到给定的字符指针中去，以便在日志打印中显示出来
 u_char *ngx_log_errno(u_char *buf, u_char *last, int err)
 {
     char *perrorinfo = strerror(err);
@@ -142,6 +144,17 @@ void ngx_log_error_core(int level, int err, const char *fmt, ...)
     tm.tm_mon++;
     tm.tm_year +=1900;
     char strCurTime[40] = {0};   //先组合出一个当前时间字符串，格式形如：2019/01/08 19:57:11
+    /*
+        int snprintf ( char * str, size_t size, const char * format, ... );
+        将可变参数(...)按照 format 格式化成字符串，并将字符串复制到 str 中，size 为要写入的字符的最大数目，超过 size 会被截断
+        str -- 目标字符串。
+        size -- 拷贝字节数(Bytes)。
+        format -- 格式化成字符串。
+        ... -- 可变参数。
+        返回值：
+        (1) 如果格式化后的字符串长度小于等于 size，则会把字符串全部复制到 str 中，并给其后添加一个字符串结束符 \0。返回源串的长度(strlen, 不含'\0')，
+        (2) 如果格式化后的字符串长度大于 size，超过 size 的部分会被截断，只将其中的 (size-1) 个字符复制到 str 中，并给其后添加一个字符串结束符 \0，返回值为欲写入的字符串长度(strlen, 不含'\0'，即为size - 1)。
+    */
     snprintf(strCurTime, 40, "%4d/%02d/%02d %02d:%02d:%02d", 
                     tm.tm_year, tm.tm_mon,
                     tm.tm_mday, tm.tm_hour,
@@ -223,4 +236,16 @@ void ngx_log_init()
     }
     return;
     
+}
+
+
+
+
+int getfilesize(char* filename) 
+{ 
+  struct stat statbuf; 
+  stat(filename,&statbuf); 
+  int size=statbuf.st_size;  //以字节为单位的文件容量
+ 
+  return size; 
 }

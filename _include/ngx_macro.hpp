@@ -6,7 +6,7 @@
 #define NGX_MAX_ERROR_STR 2048 //显示的错误信息最大数组长度
 
 //简单的功能函数---------
-//蕾丝函数memcpy，memcpy返回的是指向目标dst的指针，但ngx_cpymem返回的是目标[拷贝数据后]的终点位置，可以实现连续复制
+//类似函数memcpy，memcpy返回的是指向目标dst的指针，但ngx_cpymem返回的是目标[拷贝数据后]的终点位置，可以实现连续复制
 #define ngx_cpymem(dst, src, n)       ((u_char *)memcpy((dst), (src), (n)) + (n))
 #define ngx_min(val1, val2)           ((val1) > (val2) ? (val2) : (val1)) //返回小的值
 

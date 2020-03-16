@@ -15,7 +15,7 @@ public:
     bool createThread(int threadNum); //创建该线程池中的所有线程
     void stopAll(); //使线程池中的所有线程退出
     void Call(); //来任务了,调用一个线程池中的线程工作
-    void inMsgRecvQueueAndSignal(char *buf); //收到一个完整信息后,入消息队列,病出发线程池中的线程来处理该消息
+    void inMsgRecvQueueAndSignal(char *buf); //收到一个完整信息后,入消息队列,并触发线程池中的线程来处理该消息
 private:
     /*
         在C++的类中，普通成员函数不能作为pthread_create的线程函数，如果要作为pthread_create中的线程函数，必须是static!

@@ -38,7 +38,7 @@ bool CConfig::loadConf(const char *pconfName)
         {
             continue;
         }
-        if (linebuf[0] == 0)
+        if (linebuf[0] == 0) //空行
         {
             continue;
         }
@@ -56,6 +56,7 @@ bool CConfig::loadConf(const char *pconfName)
             }
             else
             {
+                //正常情况
                 break;
             }
         }

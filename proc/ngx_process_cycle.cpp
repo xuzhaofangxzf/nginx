@@ -101,7 +101,7 @@ void ngx_master_process_cycle()
         sigsuspend(&set); //阻塞在这里，等待一个信号，此时进程是挂起的，不占用cpu时间，只有收到信号才会被唤醒（返回）；
         //此时master进程完全靠信号驱动干活
         ngx_log_error_core(NGX_LOG_NOTICE, 0, "This is father process, pid = %d", ngx_pid);
-        sleep(10);
+        sleep(10); //在这个sleep过程中，信号屏蔽集恢复到原来的设置了，即阻塞上面一堆的信号
     }
     
     return;

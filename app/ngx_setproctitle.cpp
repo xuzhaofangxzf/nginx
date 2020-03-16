@@ -26,7 +26,7 @@ void ngxInitSetProcTitle()
     for (int i = 0; environ[i] != NULL; i++)
     {
         size_t size = strlen(environ[i]) + 1;
-        strncpy(ptmp, size, environ[i]);
+        strncpy(ptmp,environ[i],size);
         #if 0
         strcpy(ptmp, environ[i]);
         environ[i] = ptmp; //这行代码可以删除?
@@ -55,7 +55,7 @@ void ngxSetProcTitle(const char* title)
     g_os_argv[1] = NULL;
     
     char* ptmp = g_os_argv[0]; //指向开始的位置
-    strncpy(ptmp, titlelen, title);
+    strncpy(ptmp, title, titlelen);
     ptmp += titlelen;
     
     size_t leftstorage = totallen - titlelen; //把剩下的内存清零，不然有可能会显示乱码
