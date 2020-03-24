@@ -940,6 +940,7 @@ void *CSocket::serverSendQueueThread(void *threadData)
            break;
        }
        ngx_log_stderr(0, "serverSendQueueThread: senddata before");
+       //初步判断消息队列是不是不为空
        if (pSocketObj->m_iSendMsgQueueCount > 0)
        {
            err = pthread_mutex_lock(&pSocketObj->m_sendMsgQueueMutex);
