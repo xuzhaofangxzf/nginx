@@ -1,7 +1,7 @@
 #ifndef __NGX_AFFINITY_HPP__
 #define __NGX_AFFINITY_HPP__
 
-#define _GNU_SOURCE
+//#define _GNU_SOURCE
 #include <sched.h>
 #include <unistd.h>
 
