@@ -1,0 +1,1 @@
+/usr/bin/g++   -std=c++11 -pthread  -O0 -Wall -g2 -ggdb  -rdynamic CMakeFiles/nginx.dir/client/client.cpp.o CMakeFiles/nginx.dir/client/ngx_c_crc32.cxx.o  -o ../bin/nginx 

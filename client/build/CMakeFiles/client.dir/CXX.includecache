@@ -1,0 +1,44 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/ngx_c_crc32.h
+stddef.h
+-
+
+/home/xufang/GitLab/client/client/client.cpp
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+errno.h
+-
+sys/socket.h
+-
+arpa/inet.h
+-
+fcntl.h
+-
+unistd.h
+-
+signal.h
+-
+ngx_c_crc32.h
+/home/xufang/GitLab/client/client/ngx_c_crc32.h
+
+/home/xufang/GitLab/client/client/ngx_c_crc32.cxx
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+ngx_c_crc32.h
+/home/xufang/GitLab/client/client/ngx_c_crc32.h
+
